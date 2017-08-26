@@ -1,2 +1,2 @@
 # dxx
-Driver with C++ Runtime
+Windows Kernel Driver with C++ runtime
