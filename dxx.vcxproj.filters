@@ -12,6 +12,9 @@
     <Filter Include="kcrt">
       <UniqueIdentifier>{bddac5e9-2a84-418c-932b-bb5d695a9641}</UniqueIdentifier>
     </Filter>
+    <Filter Include="kstl">
+      <UniqueIdentifier>{2bc1091d-89a4-42f3-8809-b1a3cefbebc0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -22,6 +25,33 @@
     </ClCompile>
     <ClCompile Include="kcrt\kcrtcc.cpp">
       <Filter>kcrt</Filter>
+    </ClCompile>
+    <ClCompile Include="kstl\source\allocator_eastl.cpp">
+      <Filter>kstl</Filter>
+    </ClCompile>
+    <ClCompile Include="kstl\source\assert.cpp">
+      <Filter>kstl</Filter>
+    </ClCompile>
+    <ClCompile Include="kstl\source\fixed_pool.cpp">
+      <Filter>kstl</Filter>
+    </ClCompile>
+    <ClCompile Include="kstl\source\hashtable.cpp">
+      <Filter>kstl</Filter>
+    </ClCompile>
+    <ClCompile Include="kstl\source\intrusive_list.cpp">
+      <Filter>kstl</Filter>
+    </ClCompile>
+    <ClCompile Include="kstl\source\numeric_limits.cpp">
+      <Filter>kstl</Filter>
+    </ClCompile>
+    <ClCompile Include="kstl\source\red_black_tree.cpp">
+      <Filter>kstl</Filter>
+    </ClCompile>
+    <ClCompile Include="kstl\source\string.cpp">
+      <Filter>kstl</Filter>
+    </ClCompile>
+    <ClCompile Include="kstl\source\thread_support.cpp">
+      <Filter>kstl</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
