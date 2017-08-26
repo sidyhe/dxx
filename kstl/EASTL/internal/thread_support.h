@@ -49,13 +49,13 @@
 		extern "C" long  __stdcall _InterlockedCompareExchange(long volatile* Dest, long Exchange, long Comp);
 		#pragma intrinsic (_InterlockedCompareExchange)
 	#else
-		extern "C" long  _InterlockedIncrement(long volatile* Addend);
+		extern "C" long __cdecl _InterlockedIncrement(long volatile* Addend);
 		#pragma intrinsic (_InterlockedIncrement)
 
-		extern "C" long _InterlockedDecrement(long volatile* Addend);
+		extern "C" long __cdecl _InterlockedDecrement(long volatile* Addend);
 		#pragma intrinsic (_InterlockedDecrement)
 
-		extern "C" long _InterlockedCompareExchange(long volatile* Dest, long Exchange, long Comp);
+		extern "C" long __cdecl _InterlockedCompareExchange(long volatile* Dest, long Exchange, long Comp);
 		#pragma intrinsic (_InterlockedCompareExchange)
 	#endif
 		struct _KMUTANT;
