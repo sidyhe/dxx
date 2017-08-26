@@ -9,16 +9,24 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
-    <Filter Include="crt">
-      <UniqueIdentifier>{2db96854-2b93-4c77-90ab-922b1d691b13}</UniqueIdentifier>
+    <Filter Include="kcrt">
+      <UniqueIdentifier>{bddac5e9-2a84-418c-932b-bb5d695a9641}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="kcrt.cpp">
-      <Filter>crt</Filter>
+    <ClCompile Include="kcrt\kcrtc.c">
+      <Filter>kcrt</Filter>
     </ClCompile>
+    <ClCompile Include="kcrt\kcrtcc.cpp">
+      <Filter>kcrt</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="kcrt\kcrt.h">
+      <Filter>kcrt</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
