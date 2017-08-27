@@ -16,6 +16,8 @@ extern _CRTALLOC(".CRT$XCZ") _PVFV __xc_z[] = { NULL };
 #pragma const_seg()
 #pragma comment(linker, "/merge:.CRT=.rdata")
 
+#define KCRT_POOL_DEFAULT_TAG	'trck' // kcrt
+
 typedef struct _ON_EXIT_ENTRY {
 	LIST_ENTRY Entry;
 	_PVFV func;
@@ -30,7 +32,17 @@ void __cdecl free(void* ptr) {
 }
 
 void* __cdecl malloc(size_t size) {
-	return ExAllocatePoolWithTag(NonPagedPool, size, 'kcrt');
+	return kmalloc(size, PagedPool);
+}
+
+void* __cdecl kmalloc(SIZE_T size, POOL_TYPE PoolType) {
+	void* ptr;
+
+	ptr = ExAllocatePoolWithTag(PoolType, size, KCRT_POOL_DEFAULT_TAG);
+	if (ptr) {
+		RtlZeroMemory(ptr, size);
+	}
+	return ptr;
 }
 
 void _initterm(_PVFV* pfbegin, _PVFV* pfend)

@@ -66,6 +66,8 @@ NTSTATUS SysMain(PDRIVER_OBJECT DrvObject, PUNICODE_STRING RegPath) {
 	stl::unordered_map<double, stl::string> um_test;
 	um_test.insert(stl::make_pair(6.6, "9.9"));
 
+	
+
 	return STATUS_UNSUCCESSFUL;
 }
 

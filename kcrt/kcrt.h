@@ -14,8 +14,9 @@ int __cdecl atexit(_PVFV func);
 
 
 
-void __cdecl free(void* ptr);
-void* __cdecl malloc(size_t size);
+void  __cdecl free(void* ptr);
+void* __cdecl malloc(size_t size); // PagedPool
+void* __cdecl kmalloc(SIZE_T size, POOL_TYPE PoolType);
 
 #ifdef __cplusplus
 }
