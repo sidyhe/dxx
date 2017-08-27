@@ -97,3 +97,7 @@ void __cdecl _cexit(void) {
 	doexit(0, 0, 1);    /* full term, return to caller */
 }
 
+int __cdecl _purecall(void) {
+	KdBreakPoint();
+	ExRaiseStatus(STATUS_NOT_IMPLEMENTED);
+}
