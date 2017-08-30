@@ -42,7 +42,41 @@ namespace eastl
 
 			void mutex::lock()
 			{
-				KeWaitForSingleObject(mMutex, Executive, KernelMode, FALSE, NULL);
+				NTSTATUS st;
+				KIRQL kIrql = KeGetCurrentIrql();
+
+				if (kIrql < DISPATCH_LEVEL)
+				{
+					st = KeWaitForSingleObject(mMutex, Executive, KernelMode, FALSE, NULL);
+					if (!NT_SUCCESS(st))
+						ExRaiseStatus(st);
+				}
+				else if (kIrql == DISPATCH_LEVEL)
+				{
+					LARGE_INTEGER Timeout;
+
+					Timeout.QuadPart = 0;
+					do 
+					{
+						st = KeWaitForSingleObject(mMutex, Executive, KernelMode, FALSE, &Timeout);
+						if (st == STATUS_SUCCESS)
+						{
+							break;
+						}
+						else if (st == STATUS_TIMEOUT)
+						{
+							// continue;
+						}
+						else
+						{
+							ExRaiseStatus(st);
+						}
+					} while (true);
+				}
+				else
+				{
+					KeBugCheck(IRQL_NOT_LESS_OR_EQUAL);
+				}
 			}
 
 			void mutex::unlock()

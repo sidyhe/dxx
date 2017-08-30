@@ -189,13 +189,7 @@ namespace eastl
 
 			protected:
 				#if defined(EA_PLATFORM_MICROSOFT)
-					#if defined(_WIN64)
-						PKMUTEX mMutex;
-						// uint64_t mMutexBuffer[40 / sizeof(uint64_t)]; // CRITICAL_SECTION is 40 bytes on Win64.
-					#elif defined(_WIN32)
-						PKMUTEX mMutex;
-						// uint32_t mMutexBuffer[24 / sizeof(uint32_t)]; // CRITICAL_SECTION is 24 bytes on Win32.
-					#endif
+					PRKMUTEX mMutex;
 				#elif defined(EA_PLATFORM_POSIX)
 					pthread_mutex_t mMutex;
 				#endif
