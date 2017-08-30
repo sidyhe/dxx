@@ -23,4 +23,7 @@
 
 namespace stl {
 	using namespace eastl;
+
+	using mutex = eastl::Internal::mutex;
+	using lock_guard = eastl::Internal::auto_mutex;
 }
