@@ -113,3 +113,113 @@ int __cdecl _purecall(void) {
 	KdBreakPoint();
 	ExRaiseStatus(STATUS_NOT_IMPLEMENTED);
 }
+
+//////////////////////////////////////////////////////////////////////////
+// ntoskrnl force
+NTSYSAPI BOOLEAN NTAPI RtlTimeToSecondsSince1970(_In_ PLARGE_INTEGER Time, _Out_ PULONG ElapsedSeconds);
+int __cdecl _vsnprintf_s(char* const _Buffer, size_t const _BufferCount, size_t const _MaxCount, char const* const _Format, va_list _ArgList);
+
+//////////////////////////////////////////////////////////////////////////
+// file
+struct _iobuf;
+typedef struct _iobuf FILE;
+#define EOF    (-1)
+
+FILE* __cdecl fopen(char const* _FileName, char const* _Mode) {
+	_FileName;
+	_Mode;
+
+	return NULL;
+}
+
+FILE* __cdecl freopen(char const* _FileName, char const* _Mode, FILE* _Stream) {
+	_FileName;
+	_Mode;
+	_Stream;
+
+	return NULL;
+}
+
+int __cdecl fclose(FILE* _Stream) {
+	_Stream;
+
+	return 0;
+}
+
+int __cdecl feof(FILE* _Stream) {
+	_Stream;
+
+	return 1;
+}
+
+size_t __cdecl fread(void* _Buffer, size_t _ElementSize, size_t _ElementCount, FILE* _Stream) {
+	_Buffer;
+	_ElementSize;
+	_ElementCount;
+	_Stream;
+
+	return 0;
+}
+
+size_t __cdecl fwrite(void const* _Buffer, size_t _ElementSize, size_t _ElementCount, FILE* _Stream) {
+	_Buffer;
+	_ElementSize;
+	_ElementCount;
+	_Stream;
+
+	return 0;
+}
+
+int __cdecl getc(FILE* _Stream) {
+	_Stream;
+
+	return EOF;
+}
+
+int __cdecl ferror(FILE* _Stream) {
+	_Stream;
+
+	return 1;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// time
+
+typedef long clock_t;
+clock_t __cdecl clock(void) {
+	LARGE_INTEGER li;
+
+	KeQueryTickCount(&li);
+	return li.LowPart;
+}
+
+typedef __int64 __time64_t;
+__time64_t __cdecl _time64(__time64_t* _Time) {
+	ULONG uTime;
+	LARGE_INTEGER li;
+	__time64_t uTime64;
+
+	KeQuerySystemTime(&li);
+	RtlTimeToSecondsSince1970(&li, &uTime);
+	uTime64 = uTime;
+	if (_Time) {
+		*_Time = uTime64;
+	}
+
+	return uTime64;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// sprintf
+
+#include <stdarg.h>
+
+int __cdecl ksprintf(char* const s, size_t const sz, char const* const f, ...) {
+	int n = 0;
+	va_list _ArgList;
+
+	va_start(_ArgList, f);
+	n = _vsnprintf_s(s, sz, _TRUNCATE, f, _ArgList);
+	va_end(_ArgList);
+	return n;
+}

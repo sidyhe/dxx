@@ -129,12 +129,12 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
     <EnableInf2cat>false</EnableInf2cat>
-    <IncludePath>./kstl;$(VC_IncludePath);$(IncludePath)</IncludePath>
+    <IncludePath>./kstl;./luak;$(VC_IncludePath);$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
     <EnableInf2cat>false</EnableInf2cat>
-    <IncludePath>./kstl;$(VC_IncludePath);$(IncludePath)</IncludePath>
+    <IncludePath>./kstl;./luak;$(VC_IncludePath);$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
     <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
@@ -199,8 +199,10 @@
     <FilesToPackage Include="$(TargetPath)" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="kcrt\err.c" />
     <ClCompile Include="kcrt\kcrtc.c" />
     <ClCompile Include="kcrt\kcrtcc.cpp" />
+    <ClCompile Include="kcrt\strtod.c" />
     <ClCompile Include="kstl\source\allocator_eastl.cpp" />
     <ClCompile Include="kstl\source\assert.cpp" />
     <ClCompile Include="kstl\source\fixed_pool.cpp" />
@@ -210,10 +212,91 @@
     <ClCompile Include="kstl\source\red_black_tree.cpp" />
     <ClCompile Include="kstl\source\string.cpp" />
     <ClCompile Include="kstl\source\thread_support.cpp" />
+    <ClCompile Include="luak\lua\lapi.c" />
+    <ClCompile Include="luak\lua\lauxlib.c" />
+    <ClCompile Include="luak\lua\lbaselib.c" />
+    <ClCompile Include="luak\lua\lbitlib.c" />
+    <ClCompile Include="luak\lua\lcode.c" />
+    <ClCompile Include="luak\lua\lcorolib.c" />
+    <ClCompile Include="luak\lua\lctype.c" />
+    <ClCompile Include="luak\lua\ldblib.c" />
+    <ClCompile Include="luak\lua\ldebug.c" />
+    <ClCompile Include="luak\lua\ldo.c" />
+    <ClCompile Include="luak\lua\ldump.c" />
+    <ClCompile Include="luak\lua\lfunc.c" />
+    <ClCompile Include="luak\lua\lgc.c" />
+    <ClCompile Include="luak\lua\linit.c" />
+    <ClCompile Include="luak\lua\llex.c" />
+    <ClCompile Include="luak\lua\lmathlib.c" />
+    <ClCompile Include="luak\lua\lmem.c" />
+    <ClCompile Include="luak\lua\lobject.c" />
+    <ClCompile Include="luak\lua\lopcodes.c" />
+    <ClCompile Include="luak\lua\lparser.c" />
+    <ClCompile Include="luak\lua\lstate.c" />
+    <ClCompile Include="luak\lua\lstring.c" />
+    <ClCompile Include="luak\lua\lstrlib.c" />
+    <ClCompile Include="luak\lua\ltable.c" />
+    <ClCompile Include="luak\lua\ltablib.c" />
+    <ClCompile Include="luak\lua\ltm.c" />
+    <ClCompile Include="luak\lua\lundump.c" />
+    <ClCompile Include="luak\lua\lutf8lib.c" />
+    <ClCompile Include="luak\lua\lvm.c" />
+    <ClCompile Include="luak\lua\lzio.c" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="kcrt\kcrt.h" />
+    <ClInclude Include="luak\luaplus\LuaAutoBlock.h" />
+    <ClInclude Include="luak\luaplus\LuaCall.h" />
+    <ClInclude Include="luak\luaplus\LuaFunction.h" />
+    <ClInclude Include="luak\luaplus\LuaHelper.h" />
+    <ClInclude Include="luak\luaplus\LuaHelper_Object.h" />
+    <ClInclude Include="luak\luaplus\LuaHelper_StackObject.h" />
+    <ClInclude Include="luak\luaplus\LuaObject.h" />
+    <ClInclude Include="luak\luaplus\LuaPlus.h" />
+    <ClInclude Include="luak\luaplus\LuaPlusCD.h" />
+    <ClInclude Include="luak\luaplus\LuaPlusConfig.h" />
+    <ClInclude Include="luak\luaplus\LuaPlusInternal.h" />
+    <ClInclude Include="luak\luaplus\LuaStackObject.h" />
+    <ClInclude Include="luak\luaplus\LuaStackTableIterator.h" />
+    <ClInclude Include="luak\luaplus\LuaState.h" />
+    <ClInclude Include="luak\luaplus\LuaStateCD.h" />
+    <ClInclude Include="luak\luaplus\LuaStateOutFile.h" />
+    <ClInclude Include="luak\luaplus\LuaStateOutString.h" />
+    <ClInclude Include="luak\luaplus\LuaTableIterator.h" />
+    <ClInclude Include="luak\lua\lapi.h" />
+    <ClInclude Include="luak\lua\lauxlib.h" />
+    <ClInclude Include="luak\lua\lcode.h" />
+    <ClInclude Include="luak\lua\lctype.h" />
+    <ClInclude Include="luak\lua\ldebug.h" />
+    <ClInclude Include="luak\lua\ldo.h" />
+    <ClInclude Include="luak\lua\lfunc.h" />
+    <ClInclude Include="luak\lua\lgc.h" />
+    <ClInclude Include="luak\lua\llex.h" />
+    <ClInclude Include="luak\lua\llimits.h" />
+    <ClInclude Include="luak\lua\lmem.h" />
+    <ClInclude Include="luak\lua\lobject.h" />
+    <ClInclude Include="luak\lua\lopcodes.h" />
+    <ClInclude Include="luak\lua\lparser.h" />
+    <ClInclude Include="luak\lua\lprefix.h" />
+    <ClInclude Include="luak\lua\lstate.h" />
+    <ClInclude Include="luak\lua\lstring.h" />
+    <ClInclude Include="luak\lua\ltable.h" />
+    <ClInclude Include="luak\lua\ltm.h" />
+    <ClInclude Include="luak\lua\lua.h" />
+    <ClInclude Include="luak\lua\lua.hpp" />
+    <ClInclude Include="luak\lua\luaconf.h" />
+    <ClInclude Include="luak\lua\lualib.h" />
+    <ClInclude Include="luak\lua\lundump.h" />
+    <ClInclude Include="luak\lua\lvm.h" />
+    <ClInclude Include="luak\lua\lzio.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="luak\luaplus\LuaCall.inl" />
+    <None Include="luak\luaplus\LuaObject.inl" />
+    <None Include="luak\luaplus\LuaStackObject.inl" />
+    <None Include="luak\luaplus\LuaStackTableIterator.inl" />
+    <None Include="luak\luaplus\LuaState.inl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

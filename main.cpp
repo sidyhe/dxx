@@ -1,5 +1,6 @@
 #include <ntddk.h>
 #include <kstl.hpp>
+#include <luaplus.hpp>
 
 class ThisIsAClass {
 public:
@@ -16,6 +17,10 @@ public:
 };
 
 ThisIsAClass test_global_class;
+
+void DbgPrintS(const char* s) {
+	DbgPrint("%s\n", s);
+}
 
 NTSTATUS SysMain(PDRIVER_OBJECT DrvObject, PUNICODE_STRING RegPath) {
 	UNREFERENCED_PARAMETER(DrvObject);
@@ -68,6 +73,18 @@ NTSTATUS SysMain(PDRIVER_OBJECT DrvObject, PUNICODE_STRING RegPath) {
 
 	stl::mutex m;
 	stl::lock_guard lck(m);
+
+	LuaPlus::LuaStateAuto ls(LuaPlus::LuaState::Create(true));
+	{
+		LuaPlus::LuaModule _G(ls->GetGlobals());
+
+		_G.def("foo", &test_global_class, &ThisIsAClass::foo);
+		_G.def("DbgPrint", &DbgPrintS);
+	}
+
+	if (ls->LoadString("foo();\nDbgPrint([[Hello World]]);") == LUA_OK) {
+		ls->PCall(0, 0, 0);
+	}
 
 	return STATUS_UNSUCCESSFUL;
 }

@@ -15,6 +15,15 @@
     <Filter Include="kstl">
       <UniqueIdentifier>{2bc1091d-89a4-42f3-8809-b1a3cefbebc0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="luak">
+      <UniqueIdentifier>{4d85c2c0-d355-4b00-a4b7-a9fe610d865e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="luak\lua">
+      <UniqueIdentifier>{36247948-1cea-4cef-a989-80cbcb2b2f96}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="luak\luaplus">
+      <UniqueIdentifier>{d4856edb-d562-49a3-bc30-ea57c7e8676e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -53,10 +62,255 @@
     <ClCompile Include="kstl\source\thread_support.cpp">
       <Filter>kstl</Filter>
     </ClCompile>
+    <ClCompile Include="kcrt\err.c">
+      <Filter>kcrt</Filter>
+    </ClCompile>
+    <ClCompile Include="kcrt\strtod.c">
+      <Filter>kcrt</Filter>
+    </ClCompile>
+    <ClCompile Include="luak\lua\lapi.c">
+      <Filter>luak\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="luak\lua\lauxlib.c">
+      <Filter>luak\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="luak\lua\lbaselib.c">
+      <Filter>luak\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="luak\lua\lbitlib.c">
+      <Filter>luak\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="luak\lua\lcode.c">
+      <Filter>luak\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="luak\lua\lcorolib.c">
+      <Filter>luak\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="luak\lua\lctype.c">
+      <Filter>luak\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="luak\lua\ldblib.c">
+      <Filter>luak\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="luak\lua\ldebug.c">
+      <Filter>luak\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="luak\lua\ldo.c">
+      <Filter>luak\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="luak\lua\ldump.c">
+      <Filter>luak\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="luak\lua\lfunc.c">
+      <Filter>luak\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="luak\lua\lgc.c">
+      <Filter>luak\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="luak\lua\linit.c">
+      <Filter>luak\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="luak\lua\llex.c">
+      <Filter>luak\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="luak\lua\lmathlib.c">
+      <Filter>luak\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="luak\lua\lmem.c">
+      <Filter>luak\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="luak\lua\lobject.c">
+      <Filter>luak\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="luak\lua\lopcodes.c">
+      <Filter>luak\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="luak\lua\lparser.c">
+      <Filter>luak\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="luak\lua\lstate.c">
+      <Filter>luak\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="luak\lua\lstring.c">
+      <Filter>luak\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="luak\lua\lstrlib.c">
+      <Filter>luak\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="luak\lua\ltable.c">
+      <Filter>luak\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="luak\lua\ltablib.c">
+      <Filter>luak\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="luak\lua\ltm.c">
+      <Filter>luak\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="luak\lua\lundump.c">
+      <Filter>luak\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="luak\lua\lutf8lib.c">
+      <Filter>luak\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="luak\lua\lvm.c">
+      <Filter>luak\lua</Filter>
+    </ClCompile>
+    <ClCompile Include="luak\lua\lzio.c">
+      <Filter>luak\lua</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="kcrt\kcrt.h">
       <Filter>kcrt</Filter>
     </ClInclude>
+    <ClInclude Include="luak\lua\lapi.h">
+      <Filter>luak\lua</Filter>
+    </ClInclude>
+    <ClInclude Include="luak\lua\lauxlib.h">
+      <Filter>luak\lua</Filter>
+    </ClInclude>
+    <ClInclude Include="luak\lua\lcode.h">
+      <Filter>luak\lua</Filter>
+    </ClInclude>
+    <ClInclude Include="luak\lua\lctype.h">
+      <Filter>luak\lua</Filter>
+    </ClInclude>
+    <ClInclude Include="luak\lua\ldebug.h">
+      <Filter>luak\lua</Filter>
+    </ClInclude>
+    <ClInclude Include="luak\lua\ldo.h">
+      <Filter>luak\lua</Filter>
+    </ClInclude>
+    <ClInclude Include="luak\lua\lfunc.h">
+      <Filter>luak\lua</Filter>
+    </ClInclude>
+    <ClInclude Include="luak\lua\lgc.h">
+      <Filter>luak\lua</Filter>
+    </ClInclude>
+    <ClInclude Include="luak\lua\llex.h">
+      <Filter>luak\lua</Filter>
+    </ClInclude>
+    <ClInclude Include="luak\lua\llimits.h">
+      <Filter>luak\lua</Filter>
+    </ClInclude>
+    <ClInclude Include="luak\lua\lmem.h">
+      <Filter>luak\lua</Filter>
+    </ClInclude>
+    <ClInclude Include="luak\lua\lobject.h">
+      <Filter>luak\lua</Filter>
+    </ClInclude>
+    <ClInclude Include="luak\lua\lopcodes.h">
+      <Filter>luak\lua</Filter>
+    </ClInclude>
+    <ClInclude Include="luak\lua\lparser.h">
+      <Filter>luak\lua</Filter>
+    </ClInclude>
+    <ClInclude Include="luak\lua\lprefix.h">
+      <Filter>luak\lua</Filter>
+    </ClInclude>
+    <ClInclude Include="luak\lua\lstate.h">
+      <Filter>luak\lua</Filter>
+    </ClInclude>
+    <ClInclude Include="luak\lua\lstring.h">
+      <Filter>luak\lua</Filter>
+    </ClInclude>
+    <ClInclude Include="luak\lua\ltable.h">
+      <Filter>luak\lua</Filter>
+    </ClInclude>
+    <ClInclude Include="luak\lua\ltm.h">
+      <Filter>luak\lua</Filter>
+    </ClInclude>
+    <ClInclude Include="luak\lua\lua.h">
+      <Filter>luak\lua</Filter>
+    </ClInclude>
+    <ClInclude Include="luak\lua\lua.hpp">
+      <Filter>luak\lua</Filter>
+    </ClInclude>
+    <ClInclude Include="luak\lua\luaconf.h">
+      <Filter>luak\lua</Filter>
+    </ClInclude>
+    <ClInclude Include="luak\lua\lualib.h">
+      <Filter>luak\lua</Filter>
+    </ClInclude>
+    <ClInclude Include="luak\lua\lundump.h">
+      <Filter>luak\lua</Filter>
+    </ClInclude>
+    <ClInclude Include="luak\lua\lvm.h">
+      <Filter>luak\lua</Filter>
+    </ClInclude>
+    <ClInclude Include="luak\lua\lzio.h">
+      <Filter>luak\lua</Filter>
+    </ClInclude>
+    <ClInclude Include="luak\luaplus\LuaAutoBlock.h">
+      <Filter>luak\luaplus</Filter>
+    </ClInclude>
+    <ClInclude Include="luak\luaplus\LuaCall.h">
+      <Filter>luak\luaplus</Filter>
+    </ClInclude>
+    <ClInclude Include="luak\luaplus\LuaFunction.h">
+      <Filter>luak\luaplus</Filter>
+    </ClInclude>
+    <ClInclude Include="luak\luaplus\LuaHelper.h">
+      <Filter>luak\luaplus</Filter>
+    </ClInclude>
+    <ClInclude Include="luak\luaplus\LuaHelper_Object.h">
+      <Filter>luak\luaplus</Filter>
+    </ClInclude>
+    <ClInclude Include="luak\luaplus\LuaHelper_StackObject.h">
+      <Filter>luak\luaplus</Filter>
+    </ClInclude>
+    <ClInclude Include="luak\luaplus\LuaObject.h">
+      <Filter>luak\luaplus</Filter>
+    </ClInclude>
+    <ClInclude Include="luak\luaplus\LuaPlus.h">
+      <Filter>luak\luaplus</Filter>
+    </ClInclude>
+    <ClInclude Include="luak\luaplus\LuaPlusCD.h">
+      <Filter>luak\luaplus</Filter>
+    </ClInclude>
+    <ClInclude Include="luak\luaplus\LuaPlusConfig.h">
+      <Filter>luak\luaplus</Filter>
+    </ClInclude>
+    <ClInclude Include="luak\luaplus\LuaPlusInternal.h">
+      <Filter>luak\luaplus</Filter>
+    </ClInclude>
+    <ClInclude Include="luak\luaplus\LuaStackObject.h">
+      <Filter>luak\luaplus</Filter>
+    </ClInclude>
+    <ClInclude Include="luak\luaplus\LuaStackTableIterator.h">
+      <Filter>luak\luaplus</Filter>
+    </ClInclude>
+    <ClInclude Include="luak\luaplus\LuaState.h">
+      <Filter>luak\luaplus</Filter>
+    </ClInclude>
+    <ClInclude Include="luak\luaplus\LuaStateCD.h">
+      <Filter>luak\luaplus</Filter>
+    </ClInclude>
+    <ClInclude Include="luak\luaplus\LuaStateOutFile.h">
+      <Filter>luak\luaplus</Filter>
+    </ClInclude>
+    <ClInclude Include="luak\luaplus\LuaStateOutString.h">
+      <Filter>luak\luaplus</Filter>
+    </ClInclude>
+    <ClInclude Include="luak\luaplus\LuaTableIterator.h">
+      <Filter>luak\luaplus</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="luak\luaplus\LuaCall.inl">
+      <Filter>luak\luaplus</Filter>
+    </None>
+    <None Include="luak\luaplus\LuaObject.inl">
+      <Filter>luak\luaplus</Filter>
+    </None>
+    <None Include="luak\luaplus\LuaStackObject.inl">
+      <Filter>luak\luaplus</Filter>
+    </None>
+    <None Include="luak\luaplus\LuaStackTableIterator.inl">
+      <Filter>luak\luaplus</Filter>
+    </None>
+    <None Include="luak\luaplus\LuaState.inl">
+      <Filter>luak\luaplus</Filter>
+    </None>
   </ItemGroup>
 </Project>
