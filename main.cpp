@@ -1,5 +1,6 @@
 #include <ntddk.h>
 #include <kstl.hpp>
+#include <luaplus.hpp>
 
 class ThisIsAClass {
 public:
@@ -73,7 +74,6 @@ NTSTATUS SysMain(PDRIVER_OBJECT DrvObject, PUNICODE_STRING RegPath) {
 	stl::mutex m;
 	stl::lock_guard lck(m);
 
-	/*
 	LuaPlus::LuaStateAuto ls(LuaPlus::LuaState::Create(true));
 	{
 		LuaPlus::LuaModule _G(ls->GetGlobals());
@@ -85,7 +85,6 @@ NTSTATUS SysMain(PDRIVER_OBJECT DrvObject, PUNICODE_STRING RegPath) {
 	if (ls->LoadString("foo();\nDbgPrint([[Hello World]]);") == LUA_OK) {
 		ls->PCall(0, 0, 0);
 	}
-	*/
 
 	return STATUS_UNSUCCESSFUL;
 }

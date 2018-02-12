@@ -218,6 +218,10 @@ __time64_t __cdecl _time64(__time64_t* _Time) {
 	return uTime64;
 }
 
+time_t __cdecl time(time_t* _Time) {
+	return _time64(_Time);
+}
+
 //////////////////////////////////////////////////////////////////////////
 // sprintf
 

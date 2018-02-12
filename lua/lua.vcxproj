@@ -1,0 +1,205 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="lua\core\lapi.h" />
+    <ClInclude Include="lua\core\lauxlib.h" />
+    <ClInclude Include="lua\core\lcode.h" />
+    <ClInclude Include="lua\core\lctype.h" />
+    <ClInclude Include="lua\core\ldebug.h" />
+    <ClInclude Include="lua\core\ldo.h" />
+    <ClInclude Include="lua\core\lfunc.h" />
+    <ClInclude Include="lua\core\lgc.h" />
+    <ClInclude Include="lua\core\llex.h" />
+    <ClInclude Include="lua\core\llimits.h" />
+    <ClInclude Include="lua\core\lmem.h" />
+    <ClInclude Include="lua\core\lobject.h" />
+    <ClInclude Include="lua\core\lopcodes.h" />
+    <ClInclude Include="lua\core\lparser.h" />
+    <ClInclude Include="lua\core\lprefix.h" />
+    <ClInclude Include="lua\core\lstate.h" />
+    <ClInclude Include="lua\core\lstring.h" />
+    <ClInclude Include="lua\core\ltable.h" />
+    <ClInclude Include="lua\core\ltm.h" />
+    <ClInclude Include="lua\core\lua.h" />
+    <ClInclude Include="lua\core\lua.hpp" />
+    <ClInclude Include="lua\core\luaconf.h" />
+    <ClInclude Include="lua\core\lualib.h" />
+    <ClInclude Include="lua\core\lundump.h" />
+    <ClInclude Include="lua\core\lvm.h" />
+    <ClInclude Include="lua\core\lzio.h" />
+    <ClInclude Include="lua\luaplus.hpp" />
+    <ClInclude Include="lua\luaplusclass.h" />
+    <ClInclude Include="lua\luaplus\LuaAutoBlock.h" />
+    <ClInclude Include="lua\luaplus\LuaCall.h" />
+    <ClInclude Include="lua\luaplus\LuaFunction.h" />
+    <ClInclude Include="lua\luaplus\LuaHelper.h" />
+    <ClInclude Include="lua\luaplus\LuaHelper_Object.h" />
+    <ClInclude Include="lua\luaplus\LuaHelper_StackObject.h" />
+    <ClInclude Include="lua\luaplus\LuaObject.h" />
+    <ClInclude Include="lua\luaplus\LuaPlus.h" />
+    <ClInclude Include="lua\luaplus\LuaPlusCD.h" />
+    <ClInclude Include="lua\luaplus\LuaPlusConfig.h" />
+    <ClInclude Include="lua\luaplus\LuaPlusInternal.h" />
+    <ClInclude Include="lua\luaplus\LuaStackObject.h" />
+    <ClInclude Include="lua\luaplus\LuaStackTableIterator.h" />
+    <ClInclude Include="lua\luaplus\LuaState.h" />
+    <ClInclude Include="lua\luaplus\LuaStateCD.h" />
+    <ClInclude Include="lua\luaplus\LuaStateOutFile.h" />
+    <ClInclude Include="lua\luaplus\LuaStateOutString.h" />
+    <ClInclude Include="lua\luaplus\LuaTableIterator.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="lua\core\lapi.c" />
+    <ClCompile Include="lua\core\lauxlib.c" />
+    <ClCompile Include="lua\core\lbaselib.c" />
+    <ClCompile Include="lua\core\lbitlib.c" />
+    <ClCompile Include="lua\core\lcode.c" />
+    <ClCompile Include="lua\core\lcorolib.c" />
+    <ClCompile Include="lua\core\lctype.c" />
+    <ClCompile Include="lua\core\ldblib.c" />
+    <ClCompile Include="lua\core\ldebug.c" />
+    <ClCompile Include="lua\core\ldo.c" />
+    <ClCompile Include="lua\core\ldump.c" />
+    <ClCompile Include="lua\core\lfunc.c" />
+    <ClCompile Include="lua\core\lgc.c" />
+    <ClCompile Include="lua\core\linit.c" />
+    <ClCompile Include="lua\core\liolib.c">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="lua\core\llex.c" />
+    <ClCompile Include="lua\core\lmathlib.c" />
+    <ClCompile Include="lua\core\lmem.c" />
+    <ClCompile Include="lua\core\loadlib.c" />
+    <ClCompile Include="lua\core\lobject.c" />
+    <ClCompile Include="lua\core\lopcodes.c" />
+    <ClCompile Include="lua\core\loslib.c">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="lua\core\lparser.c" />
+    <ClCompile Include="lua\core\lstate.c" />
+    <ClCompile Include="lua\core\lstring.c" />
+    <ClCompile Include="lua\core\lstrlib.c" />
+    <ClCompile Include="lua\core\ltable.c" />
+    <ClCompile Include="lua\core\ltablib.c" />
+    <ClCompile Include="lua\core\ltm.c" />
+    <ClCompile Include="lua\core\lundump.c" />
+    <ClCompile Include="lua\core\lutf8lib.c" />
+    <ClCompile Include="lua\core\lvm.c" />
+    <ClCompile Include="lua\core\lzio.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="lua\luaplus\LuaCall.inl" />
+    <None Include="lua\luaplus\LuaObject.inl" />
+    <None Include="lua\luaplus\LuaStackObject.inl" />
+    <None Include="lua\luaplus\LuaStackTableIterator.inl" />
+    <None Include="lua\luaplus\LuaState.inl" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{FA3A2948-73E3-4AB3-B8E8-1EB8A9D62867}</ProjectGuid>
+    <TemplateGuid>{0a049372-4c4d-4ea0-a64e-dc6ad88ceca1}</TemplateGuid>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <MinimumVisualStudioVersion>12.0</MinimumVisualStudioVersion>
+    <Configuration>Debug</Configuration>
+    <Platform Condition="'$(Platform)' == ''">Win32</Platform>
+    <RootNamespace>lua</RootNamespace>
+    <DriverType>KMDF</DriverType>
+    <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <TargetVersion>Windows7</TargetVersion>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>WindowsKernelModeDriver10.0</PlatformToolset>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <TargetVersion>Windows7</TargetVersion>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>WindowsKernelModeDriver10.0</PlatformToolset>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <TargetVersion>Windows7</TargetVersion>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>WindowsKernelModeDriver10.0</PlatformToolset>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <TargetVersion>Windows7</TargetVersion>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>WindowsKernelModeDriver10.0</PlatformToolset>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <TargetName>$(TargetName.Replace(' ',''))_d</TargetName>
+    <EnableInf2cat>false</EnableInf2cat>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <TargetName>$(TargetName.Replace(' ',''))_d</TargetName>
+    <EnableInf2cat>false</EnableInf2cat>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <EnableInf2cat>false</EnableInf2cat>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <EnableInf2cat>false</EnableInf2cat>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <TreatWarningAsError>false</TreatWarningAsError>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <TreatWarningAsError>false</TreatWarningAsError>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <TreatWarningAsError>false</TreatWarningAsError>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <TreatWarningAsError>false</TreatWarningAsError>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
