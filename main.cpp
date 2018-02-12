@@ -1,6 +1,7 @@
 #include <ntddk.h>
 #include <kstl.hpp>
 #include <luaplus.hpp>
+#include <msgpack.hpp>
 
 class ThisIsAClass {
 public:
@@ -21,6 +22,19 @@ ThisIsAClass test_global_class;
 void DbgPrintS(const char* s) {
 	DbgPrint("%s\n", s);
 }
+
+struct TestPack
+{
+	int a;
+	char b;
+	bool c;
+	float d;
+	double e;
+	eastl::string f;
+	eastl::vector<eastl::string> g;
+
+	MSGPACK_DEFINE(a, b, c, d, e, f, g);
+};
 
 NTSTATUS SysMain(PDRIVER_OBJECT DrvObject, PUNICODE_STRING RegPath) {
 	UNREFERENCED_PARAMETER(DrvObject);
@@ -85,6 +99,19 @@ NTSTATUS SysMain(PDRIVER_OBJECT DrvObject, PUNICODE_STRING RegPath) {
 	if (ls->LoadString("foo();\nDbgPrint([[Hello World]]);") == LUA_OK) {
 		ls->PCall(0, 0, 0);
 	}
+
+	TestPack tp;
+	tp.a = 1;
+	tp.b = '0';
+	tp.c = false;
+	tp.d = 666.666f;
+	tp.e = 520.1314;
+	tp.f = "ansi or utf8 string";
+	tp.g.push_back("many strings");
+
+	msgpack::sbuffer sb;
+	msgpack::pack(sb, tp);
+	TestPack tp2 = msgpack::unpack(sb.data(), sb.size()).get().as<TestPack>();
 
 	return STATUS_UNSUCCESSFUL;
 }
