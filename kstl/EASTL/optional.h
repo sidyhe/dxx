@@ -81,6 +81,7 @@ namespace eastl
 			inline optional_storage() EA_NOEXCEPT : empty_val('\0') {}
 			inline optional_storage(const optional_storage& other) : val(other.val), engaged(other.engaged) { }
 			inline optional_storage(const value_type& v) : val(v), engaged(true) {}
+			inline optional_storage(value_type &&v) : val(eastl::move(v)), engaged(true) {}
 			inline ~optional_storage()
 			{
 				if (engaged)
@@ -129,6 +130,7 @@ namespace eastl
 			inline optional_storage() EA_NOEXCEPT : empty_val('\0') {}
 			inline optional_storage(const optional_storage& other) : val(other.val), engaged(other.engaged) { }
 			inline optional_storage(const value_type& v) : val(v), engaged(true) {}
+			inline optional_storage(value_type &&v) : val(eastl::move(v)), engaged(true) {}
 
 			// Removed to make optional<T> trivially destructible when T is trivially destructible.
 			//
@@ -249,7 +251,9 @@ namespace eastl
 		    return *this;
 	    }
 
-	    inline explicit operator bool() const { return engaged; }
+	    EA_CONSTEXPR inline explicit operator bool() const { return engaged; }
+
+		EA_CONSTEXPR inline bool has_value() const EA_NOEXCEPT { return engaged; }
 
 	    template <class U>
 	    inline value_type value_or(U&& default_value) const
@@ -261,15 +265,15 @@ namespace eastl
 
 		inline const T& value()&              { return get_value_ref(); }
 		inline const T& value() const&        { return get_value_ref(); }
-		inline T&& value()&&                  { return get_value_ref(); }
-		inline const T&& value() const&&      { return get_value_ref(); }
+		inline T&& value()&&                  { return get_rvalue_ref(); }
+		inline const T&& value() const&&      { return get_rvalue_ref(); }
 
 	    inline T* operator->()                { return get_value_address(); }
 	    inline const T* operator->() const    { return get_value_address(); }
 	    inline T& operator*()&                { return get_value_ref(); }
-		inline T&& operator*()&&              { return get_value_ref(); }
+		inline T&& operator*()&&              { return get_rvalue_ref(); }
 	    inline const T& operator*() const&    { return get_value_ref(); }
-		inline const T&& operator*() const&&  { return get_value_ref(); }
+		inline const T&& operator*() const&&  { return get_rvalue_ref(); }
 
 		#if EASTL_VARIADIC_TEMPLATES_ENABLED
 			template <class... Args>
@@ -371,6 +375,17 @@ namespace eastl
 				EASTL_ASSERT_MSG(engaged, "no value to retrieve");
 			#endif
 		    return val;
+	    }
+
+	    inline value_type&& get_rvalue_ref() EASTL_OPTIONAL_NOEXCEPT
+	    {
+            #if EASTL_EXCEPTIONS_ENABLED
+				if(!engaged) 
+					throw bad_optional_access();
+			#elif EASTL_ASSERT_ENABLED
+				EASTL_ASSERT_MSG(engaged, "no value to retrieve");
+			#endif
+		    return eastl::move(val);
 	    }
     };
 

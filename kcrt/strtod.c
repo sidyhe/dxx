@@ -63,7 +63,8 @@ double __cdecl kstrtod(char const* _String, char** _EndPtr) {
 	if (*p == '-') {
 		sign = TRUE;
 		p += 1;
-	} else {
+	}
+	else {
 		if (*p == '+') {
 			p += 1;
 		}
@@ -99,20 +100,23 @@ double __cdecl kstrtod(char const* _String, char** _EndPtr) {
 	p -= mantSize;
 	if (decPt < 0) {
 		decPt = mantSize;
-	} else {
+	}
+	else {
 		mantSize -= 1;			/* One of the digits was the point. */
 	}
 	if (mantSize > 18) {
 		fracExp = decPt - 18;
 		mantSize = 18;
-	} else {
+	}
+	else {
 		fracExp = decPt - mantSize;
 	}
 	if (mantSize == 0) {
 		fraction = 0.0;
 		p = _String;
 		goto done;
-	} else {
+	}
+	else {
 		int frac1, frac2;
 		frac1 = 0;
 		for (; mantSize > 9; mantSize -= 1)
@@ -149,7 +153,8 @@ double __cdecl kstrtod(char const* _String, char** _EndPtr) {
 		if (*p == '-') {
 			expSign = TRUE;
 			p += 1;
-		} else {
+		}
+		else {
 			if (*p == '+') {
 				p += 1;
 			}
@@ -162,7 +167,8 @@ double __cdecl kstrtod(char const* _String, char** _EndPtr) {
 	}
 	if (expSign) {
 		exp = fracExp - exp;
-	} else {
+	}
+	else {
 		exp = fracExp + exp;
 	}
 
@@ -176,7 +182,8 @@ double __cdecl kstrtod(char const* _String, char** _EndPtr) {
 	if (exp < 0) {
 		expSign = TRUE;
 		exp = -exp;
-	} else {
+	}
+	else {
 		expSign = FALSE;
 	}
 	if (exp > maxExponent) {
@@ -191,7 +198,8 @@ double __cdecl kstrtod(char const* _String, char** _EndPtr) {
 	}
 	if (expSign) {
 		fraction /= dblExp;
-	} else {
+	}
+	else {
 		fraction *= dblExp;
 	}
 

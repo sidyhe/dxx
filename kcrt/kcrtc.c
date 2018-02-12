@@ -25,24 +25,84 @@ typedef struct _ON_EXIT_ENTRY {
 
 LIST_ENTRY __onexithead;
 
+typedef struct _MALLOC_HEADER
+{
+	ULONG32 Tags;
+	ULONG32 _Resv0;
+	ULONG_PTR Size;
+}MALLOC_HEADER, *PMALLOC_HEADER;
+C_ASSERT(sizeof(MALLOC_HEADER) % sizeof(void*) == 0);
+
+PMALLOC_HEADER GET_MALLOC_HEADER(PVOID ptr) {
+	return (MALLOC_HEADER*)((PUCHAR)ptr - sizeof(MALLOC_HEADER));
+}
+
+PVOID GET_MALLOC_ADDRESS(PMALLOC_HEADER header) {
+	return (PVOID)((PUCHAR)header + sizeof(MALLOC_HEADER));
+}
+
+ULONG_PTR GET_MALLOC_SIZE(PVOID ptr) {
+	PMALLOC_HEADER header = GET_MALLOC_HEADER(ptr);
+
+	if (header->Tags != KCRT_POOL_DEFAULT_TAG)
+		KeBugCheck(BAD_POOL_HEADER);
+
+	return header->Size;
+}
+
 void __cdecl free(void* ptr) {
 	if (ptr) {
-		ExFreePool(ptr);
+		MALLOC_HEADER* mhdr = GET_MALLOC_HEADER(ptr);
+
+		if (mhdr->Tags != KCRT_POOL_DEFAULT_TAG)
+			KeBugCheck(BAD_POOL_HEADER);
+
+		ExFreePool(mhdr);
 	}
 }
 
 void* __cdecl malloc(size_t size) {
-	return kmalloc(size, PagedPool);
+	PMALLOC_HEADER mhdr = NULL;
+	const size_t new_size = size + sizeof(MALLOC_HEADER);
+
+	mhdr = (PMALLOC_HEADER)ExAllocatePoolWithTag(NonPagedPool, new_size, KCRT_POOL_DEFAULT_TAG);
+	if (mhdr) {
+		RtlZeroMemory(mhdr, new_size);
+
+		mhdr->Tags = KCRT_POOL_DEFAULT_TAG;
+		mhdr->Size = size;
+		return GET_MALLOC_ADDRESS(mhdr);
+	}
+
+	return NULL;
 }
 
-void* __cdecl kmalloc(SIZE_T size, POOL_TYPE PoolType) {
-	void* ptr;
-
-	ptr = ExAllocatePoolWithTag(PoolType, size, KCRT_POOL_DEFAULT_TAG);
-	if (ptr) {
-		RtlZeroMemory(ptr, size);
+void* __cdecl realloc(void* ptr, size_t new_size) {
+	if (!ptr) {
+		return malloc(new_size);
 	}
-	return ptr;
+	else if (new_size == 0) {
+		free(ptr);
+		return NULL;
+	}
+	else {
+		size_t old_size = GET_MALLOC_SIZE(ptr);
+
+		if (new_size <= old_size) {
+			return ptr;
+		}
+		else {
+			void* new_ptr = malloc(new_size);
+
+			if (new_ptr) {
+				memcpy(new_ptr, ptr, old_size);
+				free(ptr);
+				return new_ptr;
+			}
+		}
+	}
+
+	return NULL;
 }
 
 void _initterm(_PVFV* pfbegin, _PVFV* pfend)
@@ -115,77 +175,27 @@ int __cdecl _purecall(void) {
 }
 
 //////////////////////////////////////////////////////////////////////////
-// ntoskrnl force
+// assert
+void __cdecl _wassert(wchar_t const* _Message, wchar_t const* _File, unsigned _Line)
+{
+	_Message;
+	_File;
+	_Line;
+
+	KdBreakPoint();
+	ExRaiseStatus(STATUS_BAD_DATA);
+}
+
+//////////////////////////////////////////////////////////////////////////
+// ntoskrnl
 NTSYSAPI BOOLEAN NTAPI RtlTimeToSecondsSince1970(_In_ PLARGE_INTEGER Time, _Out_ PULONG ElapsedSeconds);
 int __cdecl _vsnprintf_s(char* const _Buffer, size_t const _BufferCount, size_t const _MaxCount, char const* const _Format, va_list _ArgList);
 
 //////////////////////////////////////////////////////////////////////////
-// file
-struct _iobuf;
-typedef struct _iobuf FILE;
-#define EOF    (-1)
-
-FILE* __cdecl fopen(char const* _FileName, char const* _Mode) {
-	_FileName;
-	_Mode;
-
-	return NULL;
-}
-
-FILE* __cdecl freopen(char const* _FileName, char const* _Mode, FILE* _Stream) {
-	_FileName;
-	_Mode;
-	_Stream;
-
-	return NULL;
-}
-
-int __cdecl fclose(FILE* _Stream) {
-	_Stream;
-
-	return 0;
-}
-
-int __cdecl feof(FILE* _Stream) {
-	_Stream;
-
-	return 1;
-}
-
-size_t __cdecl fread(void* _Buffer, size_t _ElementSize, size_t _ElementCount, FILE* _Stream) {
-	_Buffer;
-	_ElementSize;
-	_ElementCount;
-	_Stream;
-
-	return 0;
-}
-
-size_t __cdecl fwrite(void const* _Buffer, size_t _ElementSize, size_t _ElementCount, FILE* _Stream) {
-	_Buffer;
-	_ElementSize;
-	_ElementCount;
-	_Stream;
-
-	return 0;
-}
-
-int __cdecl getc(FILE* _Stream) {
-	_Stream;
-
-	return EOF;
-}
-
-int __cdecl ferror(FILE* _Stream) {
-	_Stream;
-
-	return 1;
-}
-
-//////////////////////////////////////////////////////////////////////////
 // time
-
 typedef long clock_t;
+typedef __int64 __time64_t;
+
 clock_t __cdecl clock(void) {
 	LARGE_INTEGER li;
 
@@ -193,7 +203,6 @@ clock_t __cdecl clock(void) {
 	return li.LowPart;
 }
 
-typedef __int64 __time64_t;
 __time64_t __cdecl _time64(__time64_t* _Time) {
 	ULONG uTime;
 	LARGE_INTEGER li;

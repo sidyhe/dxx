@@ -738,6 +738,7 @@ namespace eastl
 
 	#endif
 
+
 	/*
 	// numeric_limits<unsigned short>
 	template<>
@@ -797,6 +798,7 @@ namespace eastl
 			{ return static_cast<value_type>(0); }
 	};
 	*/
+
 
 	// numeric_limits<signed short>
 	template<>
