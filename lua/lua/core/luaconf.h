@@ -186,7 +186,7 @@
 ** path of the directory of the executable file of the current process.
 */
 #define LUA_LDIR	"!\\"
-#define LUA_LDIRD	"!\\ndmlx7\\"
+#define LUA_LDIRD	"!\\dxx\\"
 #define LUA_PATH_DEFAULT  \
 		LUA_LDIR"?.lua;" LUA_LDIRD"?.lua;"
 		
