@@ -219,7 +219,14 @@ int __cdecl fgetc(FILE* f)
 	FILE_CONTROL_BLOCK* fcb = fget_core(f);
 
 	fcb->err = ZwReadFile(fcb->hFile, NULL, NULL, NULL, &isb, &c, 1, NULL, NULL);
-	return (c & 0xFF);
+	if (NT_SUCCESS(fcb->err))
+	{
+		return (c & 0xFF);
+	}
+	else
+	{
+		return EOF;
+	}
 }
 
 size_t __cdecl fread(void* Buffer, size_t ElementSize, size_t ElementCount, FILE* f)
