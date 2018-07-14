@@ -74,7 +74,7 @@ static inline int msgpack_sbuffer_write(void* data, const char* buf, size_t len)
             nsize = tmp_nsize;
         }
 
-		tmp = realloc(sbuf->data, nsize);
+        tmp = realloc(sbuf->data, nsize);
         if(!tmp) { return -1; }
 
         sbuf->data = (char*)tmp;

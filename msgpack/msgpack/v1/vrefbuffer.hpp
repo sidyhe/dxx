@@ -115,7 +115,8 @@ public:
             const size_t nused = m_tail - m_array;
             const size_t nnext = nused * 2;
 
-			iovec* nvec = static_cast<iovec*>(::realloc(m_array, sizeof(iovec)*nnext));
+            iovec* nvec = static_cast<iovec*>(::realloc(
+                m_array, sizeof(iovec)*nnext));
             if(!nvec) {
                 ExRaiseStatus(EMSGPACK_BAD_ALLOC);
             }
@@ -202,7 +203,8 @@ public:
                 nnext = tmp_nnext;
             }
 
-			iovec* nvec = static_cast<iovec*>(::realloc(to->m_array, sizeof(iovec)*nnext));
+            iovec* nvec = static_cast<iovec*>(::realloc(
+                to->m_array, sizeof(iovec)*nnext));
             if(!nvec) {
                 ::free(empty);
                 ExRaiseStatus(EMSGPACK_BAD_ALLOC);

@@ -63,13 +63,12 @@ class zone {
             } else {
                 nnext = nused * 2;
             }
-
-			finalizer* tmp = static_cast<finalizer*>(::realloc(m_array, sizeof(finalizer) * nnext));
+            finalizer* tmp =
+                static_cast<finalizer*>(::realloc(m_array, sizeof(finalizer) * nnext));
             if(!tmp) {
                 ExRaiseStatus(EMSGPACK_BAD_ALLOC);
             }
-
-            m_array = tmp;
+            m_array     = tmp;
             m_end   = tmp + nnext;
             m_tail  = tmp + nused;
             new (m_tail) finalizer(func, data);

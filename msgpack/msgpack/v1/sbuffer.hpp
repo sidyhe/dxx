@@ -118,7 +118,7 @@ private:
             nsize = tmp_nsize;
         }
 
-		void* tmp = ::realloc(m_data, nsize);
+        void* tmp = ::realloc(m_data, nsize);
         if(!tmp) {
             ExRaiseStatus(EMSGPACK_BAD_ALLOC);
         }
