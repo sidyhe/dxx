@@ -9,40 +9,10 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
-    <Filter Include="kstl">
-      <UniqueIdentifier>{2bc1091d-89a4-42f3-8809-b1a3cefbebc0}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="kstl\source\allocator_eastl.cpp">
-      <Filter>kstl</Filter>
-    </ClCompile>
-    <ClCompile Include="kstl\source\assert.cpp">
-      <Filter>kstl</Filter>
-    </ClCompile>
-    <ClCompile Include="kstl\source\fixed_pool.cpp">
-      <Filter>kstl</Filter>
-    </ClCompile>
-    <ClCompile Include="kstl\source\hashtable.cpp">
-      <Filter>kstl</Filter>
-    </ClCompile>
-    <ClCompile Include="kstl\source\intrusive_list.cpp">
-      <Filter>kstl</Filter>
-    </ClCompile>
-    <ClCompile Include="kstl\source\numeric_limits.cpp">
-      <Filter>kstl</Filter>
-    </ClCompile>
-    <ClCompile Include="kstl\source\red_black_tree.cpp">
-      <Filter>kstl</Filter>
-    </ClCompile>
-    <ClCompile Include="kstl\source\string.cpp">
-      <Filter>kstl</Filter>
-    </ClCompile>
-    <ClCompile Include="kstl\source\thread_support.cpp">
-      <Filter>kstl</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

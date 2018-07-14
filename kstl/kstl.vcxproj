@@ -1,0 +1,188 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="source\allocator_eastl.cpp" />
+    <ClCompile Include="source\assert.cpp" />
+    <ClCompile Include="source\fixed_pool.cpp" />
+    <ClCompile Include="source\hashtable.cpp" />
+    <ClCompile Include="source\intrusive_list.cpp" />
+    <ClCompile Include="source\numeric_limits.cpp" />
+    <ClCompile Include="source\red_black_tree.cpp" />
+    <ClCompile Include="source\string.cpp" />
+    <ClCompile Include="source\thread_support.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="EASTL\algorithm.h" />
+    <ClInclude Include="EASTL\allocator.h" />
+    <ClInclude Include="EASTL\allocator_malloc.h" />
+    <ClInclude Include="EASTL\any.h" />
+    <ClInclude Include="EASTL\array.h" />
+    <ClInclude Include="EASTL\bitset.h" />
+    <ClInclude Include="EASTL\bitvector.h" />
+    <ClInclude Include="EASTL\chrono.h" />
+    <ClInclude Include="EASTL\core_allocator.h" />
+    <ClInclude Include="EASTL\core_allocator_adapter.h" />
+    <ClInclude Include="EASTL\deque.h" />
+    <ClInclude Include="EASTL\fixed_allocator.h" />
+    <ClInclude Include="EASTL\fixed_hash_map.h" />
+    <ClInclude Include="EASTL\fixed_hash_set.h" />
+    <ClInclude Include="EASTL\fixed_list.h" />
+    <ClInclude Include="EASTL\fixed_map.h" />
+    <ClInclude Include="EASTL\fixed_set.h" />
+    <ClInclude Include="EASTL\fixed_slist.h" />
+    <ClInclude Include="EASTL\fixed_string.h" />
+    <ClInclude Include="EASTL\fixed_substring.h" />
+    <ClInclude Include="EASTL\fixed_vector.h" />
+    <ClInclude Include="EASTL\functional.h" />
+    <ClInclude Include="EASTL\hash_map.h" />
+    <ClInclude Include="EASTL\hash_set.h" />
+    <ClInclude Include="EASTL\heap.h" />
+    <ClInclude Include="EASTL\initializer_list.h" />
+    <ClInclude Include="EASTL\intrusive_hash_map.h" />
+    <ClInclude Include="EASTL\intrusive_hash_set.h" />
+    <ClInclude Include="EASTL\intrusive_list.h" />
+    <ClInclude Include="EASTL\intrusive_ptr.h" />
+    <ClInclude Include="EASTL\iterator.h" />
+    <ClInclude Include="EASTL\linked_array.h" />
+    <ClInclude Include="EASTL\linked_ptr.h" />
+    <ClInclude Include="EASTL\list.h" />
+    <ClInclude Include="EASTL\map.h" />
+    <ClInclude Include="EASTL\memory.h" />
+    <ClInclude Include="EASTL\numeric.h" />
+    <ClInclude Include="EASTL\numeric_limits.h" />
+    <ClInclude Include="EASTL\optional.h" />
+    <ClInclude Include="EASTL\priority_queue.h" />
+    <ClInclude Include="EASTL\queue.h" />
+    <ClInclude Include="EASTL\random.h" />
+    <ClInclude Include="EASTL\ratio.h" />
+    <ClInclude Include="EASTL\safe_ptr.h" />
+    <ClInclude Include="EASTL\scoped_array.h" />
+    <ClInclude Include="EASTL\scoped_ptr.h" />
+    <ClInclude Include="EASTL\segmented_vector.h" />
+    <ClInclude Include="EASTL\set.h" />
+    <ClInclude Include="EASTL\shared_array.h" />
+    <ClInclude Include="EASTL\shared_ptr.h" />
+    <ClInclude Include="EASTL\slist.h" />
+    <ClInclude Include="EASTL\sort.h" />
+    <ClInclude Include="EASTL\stack.h" />
+    <ClInclude Include="EASTL\string.h" />
+    <ClInclude Include="EASTL\string_hash_map.h" />
+    <ClInclude Include="EASTL\string_map.h" />
+    <ClInclude Include="EASTL\string_view.h" />
+    <ClInclude Include="EASTL\tuple.h" />
+    <ClInclude Include="EASTL\type_traits.h" />
+    <ClInclude Include="EASTL\unique_ptr.h" />
+    <ClInclude Include="EASTL\unordered_map.h" />
+    <ClInclude Include="EASTL\unordered_set.h" />
+    <ClInclude Include="EASTL\utility.h" />
+    <ClInclude Include="EASTL\vector.h" />
+    <ClInclude Include="EASTL\vector_map.h" />
+    <ClInclude Include="EASTL\vector_multimap.h" />
+    <ClInclude Include="EASTL\vector_multiset.h" />
+    <ClInclude Include="EASTL\vector_set.h" />
+    <ClInclude Include="EASTL\version.h" />
+    <ClInclude Include="EASTL\weak_ptr.h" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{C30969FA-8BF5-4125-B20B-8CEEBC78A99E}</ProjectGuid>
+    <TemplateGuid>{0a049372-4c4d-4ea0-a64e-dc6ad88ceca1}</TemplateGuid>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <MinimumVisualStudioVersion>12.0</MinimumVisualStudioVersion>
+    <Configuration>Debug</Configuration>
+    <Platform Condition="'$(Platform)' == ''">Win32</Platform>
+    <RootNamespace>kstl</RootNamespace>
+    <DriverType>KMDF</DriverType>
+    <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <TargetVersion>Windows7</TargetVersion>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>WindowsKernelModeDriver10.0</PlatformToolset>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <TargetVersion>Windows7</TargetVersion>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>WindowsKernelModeDriver10.0</PlatformToolset>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <TargetVersion>Windows7</TargetVersion>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>WindowsKernelModeDriver10.0</PlatformToolset>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <TargetVersion>Windows7</TargetVersion>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>WindowsKernelModeDriver10.0</PlatformToolset>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <EnableInf2cat>false</EnableInf2cat>
+    <TargetName>$(TargetName.Replace(' ',''))_d</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <EnableInf2cat>false</EnableInf2cat>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <EnableInf2cat>false</EnableInf2cat>
+    <TargetName>$(TargetName.Replace(' ',''))_d</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <EnableInf2cat>false</EnableInf2cat>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(VC_IncludePath);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(VC_IncludePath);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(VC_IncludePath);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(VC_IncludePath);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

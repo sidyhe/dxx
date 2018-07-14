@@ -127,20 +127,14 @@
     <FilesToPackage Include="$(TargetPath)" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="kstl\source\allocator_eastl.cpp" />
-    <ClCompile Include="kstl\source\assert.cpp" />
-    <ClCompile Include="kstl\source\fixed_pool.cpp" />
-    <ClCompile Include="kstl\source\hashtable.cpp" />
-    <ClCompile Include="kstl\source\intrusive_list.cpp" />
-    <ClCompile Include="kstl\source\numeric_limits.cpp" />
-    <ClCompile Include="kstl\source\red_black_tree.cpp" />
-    <ClCompile Include="kstl\source\string.cpp" />
-    <ClCompile Include="kstl\source\thread_support.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="kcrt\kcrt.vcxproj">
       <Project>{07505b11-d907-4b7c-b3e8-bf37978c1bb6}</Project>
+    </ProjectReference>
+    <ProjectReference Include="kstl\kstl.vcxproj">
+      <Project>{c30969fa-8bf5-4125-b20b-8ceebc78a99e}</Project>
     </ProjectReference>
     <ProjectReference Include="lua\lua.vcxproj">
       <Project>{fa3a2948-73e3-4ab3-b8e8-1eb8a9d62867}</Project>
