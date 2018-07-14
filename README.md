@@ -4,7 +4,7 @@ Windows Kernel Driver with C++ runtime
 
 stl support (EASTL)
 
-lua support (no os/io lib)
+lua support (no os lib, part io lib)
 
 msgpack support
 
