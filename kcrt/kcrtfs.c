@@ -194,18 +194,22 @@ int __cdecl fclose(FILE* f)
 int __cdecl feof(FILE* f)
 {
 	IO_STATUS_BLOCK isb;
-	FILE_ALL_INFORMATION fai;
+	FILE_STANDARD_INFORMATION fsi;
 	FILE_CONTROL_BLOCK* fcb = fget_core(f);
 
-	fcb->err = ZwQueryInformationFile(fcb->hFile, &isb, &fai, sizeof(fai), FileAllInformation);
+	fcb->err = ZwQueryInformationFile(fcb->hFile, &isb, &fsi, sizeof(fsi), FileStandardInformation);
 	if (NT_SUCCESS(fcb->err))
 	{
-		return (fai.PositionInformation.CurrentByteOffset.QuadPart + 1 >= fai.StandardInformation.EndOfFile.QuadPart);
+		FILE_POSITION_INFORMATION fpi;
+
+		fcb->err = ZwQueryInformationFile(fcb->hFile, &isb, &fpi, sizeof(fpi), FilePositionInformation);
+		if (NT_SUCCESS(fcb->err))
+		{
+			return (fpi.CurrentByteOffset.QuadPart + 1 >= fsi.EndOfFile.QuadPart);
+		}
 	}
-	else
-	{
-		return 1;
-	}
+	
+	return 1;
 }
 
 int __cdecl fgetc(FILE* f)
@@ -215,7 +219,7 @@ int __cdecl fgetc(FILE* f)
 	FILE_CONTROL_BLOCK* fcb = fget_core(f);
 
 	fcb->err = ZwReadFile(fcb->hFile, NULL, NULL, NULL, &isb, &c, 1, NULL, NULL);
-	return c;
+	return (c & 0xFF);
 }
 
 size_t __cdecl fread(void* Buffer, size_t ElementSize, size_t ElementCount, FILE* f)
@@ -278,6 +282,7 @@ int __cdecl fseek(FILE* _Stream, long  _Offset, int _Origin)
 	case SEEK_CUR:
 		{
 			long cur_pos = ftell(_Stream);
+
 			if (cur_pos >= 0)
 			{
 				fpi.CurrentByteOffset.QuadPart = cur_pos + _Offset;
@@ -291,12 +296,12 @@ int __cdecl fseek(FILE* _Stream, long  _Offset, int _Origin)
 		break;
 	case SEEK_END:
 		{
-			FILE_ALL_INFORMATION fai;
+			FILE_STANDARD_INFORMATION fsi;
 
-			fcb->err = ZwQueryInformationFile(fcb->hFile, &isb, &fai, sizeof(fai), FileAllInformation);
+			fcb->err = ZwQueryInformationFile(fcb->hFile, &isb, &fsi, sizeof(fsi), FileStandardInformation);
 			if (NT_SUCCESS(fcb->err))
 			{
-				fpi.CurrentByteOffset.QuadPart = fai.StandardInformation.EndOfFile.QuadPart + _Offset;
+				fpi.CurrentByteOffset.QuadPart = fsi.EndOfFile.QuadPart + _Offset;
 
 				fcb->err = ZwSetInformationFile(fcb->hFile, &isb, &fpi, sizeof(fpi), FilePositionInformation);
 				if (NT_SUCCESS(fcb->err))
