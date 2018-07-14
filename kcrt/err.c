@@ -1,4 +1,4 @@
-#include <ntddk.h>
+#include <wdm.h>
 
 char *_sys_errlist[] =
 {

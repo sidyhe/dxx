@@ -1,4 +1,5 @@
-#include <ntddk.h>
+#include <wdm.h>
+#define _KCRT_CORE_
 #include "kcrt.h"
 
 #define _CRTALLOC(x) __declspec(allocate(x))
@@ -45,7 +46,7 @@ ULONG_PTR GET_MALLOC_SIZE(PVOID ptr) {
 	PMALLOC_HEADER header = GET_MALLOC_HEADER(ptr);
 
 	if (header->Tags != KCRT_POOL_DEFAULT_TAG)
-		KeBugCheck(BAD_POOL_HEADER);
+		KeBugCheckEx(BAD_POOL_HEADER, 0, 0, 0, 0);
 
 	return header->Size;
 }
@@ -55,7 +56,7 @@ void __cdecl free(void* ptr) {
 		MALLOC_HEADER* mhdr = GET_MALLOC_HEADER(ptr);
 
 		if (mhdr->Tags != KCRT_POOL_DEFAULT_TAG)
-			KeBugCheck(BAD_POOL_HEADER);
+			KeBugCheckEx(BAD_POOL_HEADER, 0, 0, 0, 0);
 
 		ExFreePool(mhdr);
 	}
@@ -125,6 +126,7 @@ void _initterm(_PVFV* pfbegin, _PVFV* pfend)
 }
 
 int __cdecl _cinit(void) {
+	_cinitfs();
 	InitializeListHead(&__onexithead);
 
 	/*
@@ -169,9 +171,11 @@ void __cdecl _cexit(void) {
 	doexit(0, 0, 1);    /* full term, return to caller */
 }
 
-int __cdecl _purecall(void) {
-	KdBreakPoint();
-	ExRaiseStatus(STATUS_NOT_IMPLEMENTED);
+//////////////////////////////////////////////////////////////////////////
+// dummy
+char* __cdecl getenv(char const* name) {
+	name;
+	return NULL;
 }
 
 //////////////////////////////////////////////////////////////////////////

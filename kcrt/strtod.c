@@ -1,4 +1,4 @@
-#include <ntddk.h>
+#include <wdm.h>
 
 static int maxExponent = 511;	/* Largest possible base 10 exponent.  Any
 								* exponent larger than this will already
