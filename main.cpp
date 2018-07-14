@@ -1,7 +1,10 @@
-#include <ntddk.h>
-#include <kstl.hpp>
+#include <wdm.h>
 #include <luaplus.hpp>
 #include <msgpack.hpp>
+#include <EASTL/sort.h>
+#include <EASTL/unique_ptr.h>
+#include <EASTL/shared_ptr.h>
+#include <EASTL/scoped_ptr.h>
 
 class ThisIsAClass {
 public:
@@ -45,48 +48,45 @@ NTSTATUS SysMain(PDRIVER_OBJECT DrvObject, PUNICODE_STRING RegPath) {
 	auto p1 = new CLIENT_ID[10];
 	delete p1;
 
-	stl::make_unique<DRIVER_OBJECT>();
-	stl::make_shared<UNICODE_STRING>();
-	stl::scoped_ptr<double> dptr(new double(3.6));
+	eastl::make_unique<DRIVER_OBJECT>();
+	eastl::make_shared<UNICODE_STRING>();
+	eastl::scoped_ptr<double> dptr(new double(3.6));
 
-	stl::set<int> set_test;
+	eastl::set<int> set_test;
 	set_test.insert(1);
 	set_test.insert(3);
 	set_test.insert(5);
 	set_test.erase(1);
 
-	stl::map<int, int> map_test;
+	eastl::map<int, int> map_test;
 	map_test[0] = 1;
 	map_test[10] = 11;
 	map_test[20] = 12;
 	map_test.erase(11);
 
-	stl::vector<int> vec_test;
+	eastl::vector<int> vec_test;
 	vec_test.push_back(2);
 	vec_test.push_back(3);
 	vec_test.push_back(1);
-	stl::stable_sort(vec_test.begin(), vec_test.end(), stl::less<int>());
+	eastl::stable_sort(vec_test.begin(), vec_test.end(), eastl::less<int>());
 	for (auto e : vec_test) {
 		DbgPrint("%d\n", e);
 	}
 
-	stl::string s;
+	eastl::string s;
 	s = "This a string";
 	s.append("any");
 	DbgPrint("%s\n", s.c_str());
 
-	stl::wstring ws;
+	eastl::wstring ws;
 	ws = L"wide string";
 	ws.clear();
 
-	stl::unordered_set<float> us_test;
+	eastl::unordered_set<float> us_test;
 	us_test.insert(333);
 
-	stl::unordered_map<double, stl::string> um_test;
-	um_test.insert(stl::make_pair(6.6, "9.9"));
-
-	stl::mutex m;
-	stl::lock_guard lck(m);
+	eastl::unordered_map<double, eastl::string> um_test;
+	um_test.insert(eastl::make_pair(6.6, "9.9"));
 
 	LuaPlus::LuaStateAuto ls(LuaPlus::LuaState::Create(true));
 	{
