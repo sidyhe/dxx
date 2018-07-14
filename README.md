@@ -14,7 +14,7 @@ VS2015 + SDK10.14393 + WDK10.14393
 
 ## Example
 
-```
+```C++
 class ThisIsAClass {
 public:
 	ThisIsAClass() {
