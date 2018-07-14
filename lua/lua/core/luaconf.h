@@ -1,5 +1,5 @@
 /*
-** $Id: luaconf.h,v 1.259 2016/12/22 13:08:50 roberto Exp $
+** $Id: luaconf.h,v 1.259.1.1 2017/04/19 17:29:57 roberto Exp $
 ** Configuration file for Lua
 ** See Copyright Notice in lua.h
 */
@@ -185,13 +185,18 @@
 ** In Windows, any exclamation mark ('!') in the path is replaced by the
 ** path of the directory of the executable file of the current process.
 */
-#define LUA_LDIR	"!\\"
-#define LUA_LDIRD	"!\\dxx\\"
+#define LUA_LDIR	"!\\lua\\"
+#define LUA_CDIR	"!\\"
+#define LUA_SHRDIR	"!\\..\\share\\lua\\" LUA_VDIR "\\"
 #define LUA_PATH_DEFAULT  \
-		LUA_LDIR"?.lua;" LUA_LDIRD"?.lua;"
-		
+		LUA_LDIR"?.lua;"  LUA_LDIR"?\\init.lua;" \
+		LUA_CDIR"?.lua;"  LUA_CDIR"?\\init.lua;" \
+		LUA_SHRDIR"?.lua;" LUA_SHRDIR"?\\init.lua;" \
+		".\\?.lua;" ".\\?\\init.lua"
 #define LUA_CPATH_DEFAULT \
-		LUA_LDIR"?.dll;" LUA_LDIRD"?.dll;"
+		LUA_CDIR"?.dll;" \
+		LUA_CDIR"..\\lib\\lua\\" LUA_VDIR "\\?.dll;" \
+		LUA_CDIR"loadall.dll;" ".\\?.dll"
 
 #else			/* }{ */
 
@@ -600,8 +605,7 @@
 #if !defined(LUA_USE_C89)
 #define l_sprintf(s,sz,f,i)	snprintf(s,sz,f,i)
 #else
-#define l_sprintf(s,sz,f,i)	ksprintf(s,sz,f,i)
-int __cdecl ksprintf(char* const s, size_t const sz, char const* const f, ...);
+#define l_sprintf(s,sz,f,i)	((void)(sz), sprintf(s,f,i))
 #endif
 
 
@@ -614,6 +618,13 @@ int __cdecl ksprintf(char* const s, size_t const sz, char const* const f, ...);
 #if !defined(LUA_USE_C89)
 #define lua_strx2number(s,p)		lua_str2number(s,p)
 #endif
+
+
+/*
+@@ lua_pointer2str converts a pointer to a readable string in a
+** non-specified way.
+*/
+#define lua_pointer2str(buff,sz,p)	l_sprintf(buff,sz,"%p",p)
 
 
 /*
@@ -638,8 +649,7 @@ int __cdecl ksprintf(char* const s, size_t const sz, char const* const f, ...);
 #undef l_mathop  /* variants not available */
 #undef lua_str2number
 #define l_mathop(op)		(lua_Number)op  /* no variant */
-#define lua_str2number(s,p)	((lua_Number)kstrtod((s), (p)))
-double __cdecl kstrtod(char const* _String, char** _EndPtr);
+#define lua_str2number(s,p)	((lua_Number)strtod((s), (p)))
 #endif
 
 
@@ -751,9 +761,6 @@ double __cdecl kstrtod(char const* _String, char** _EndPtr);
 #define LUAL_BUFFERSIZE   ((int)(0x80 * sizeof(void*) * sizeof(lua_Integer)))
 #endif
 
-#undef LUAL_BUFFERSIZE
-#define LUAL_BUFFERSIZE 1024
-
 /* }================================================================== */
 
 
@@ -775,8 +782,34 @@ double __cdecl kstrtod(char const* _String, char** _EndPtr);
 ** without modifying the main part of the file.
 */
 
-#define LUA_USE_CTYPE 1
+#ifdef WINDDK
+#include <wdm.h>
 
+int __cdecl ksprintf(char* const s, size_t const sz, char const* const f, ...);
+double __cdecl kstrtod(char const* _String, char** _EndPtr);
+
+#undef LUA_DL_DLL
+#define LUA_DL_SYS
+
+#undef LUAL_BUFFERSIZE
+#define LUAL_BUFFERSIZE 64
+
+#undef l_sprintf
+#define l_sprintf(s,sz,f,i)	ksprintf(s,sz,f,i)
+
+#undef lua_str2number
+#define lua_str2number(s,p)	((lua_Number)kstrtod((s), (p)))
+
+#undef lua_writestring
+#define lua_writestring(s,l) DbgPrintEx(DPFLTR_SYSTEM_ID, DPFLTR_ERROR_LEVEL, s)
+
+#ifdef _DEBUG
+#define lua_writestringerror(s,p) DbgPrintEx(DPFLTR_SYSTEM_ID, DPFLTR_ERROR_LEVEL, s, p)
+#else
+#define lua_writestringerror(s,p)
+#endif // _DEBUG
+
+#define LUA_USE_CTYPE 1
 // http://lua-users.org/wiki/UnicodeIdentifers
 #ifdef LUA_CORE
 // all utf-8 chars are always alphabetic character (everthing higher then
@@ -792,7 +825,7 @@ double __cdecl kstrtod(char const* _String, char** _EndPtr);
 #define u_isspace(zeich) ((!(0x80&zeich)&&isspace(zeich))&&zeich!=-1)
 #endif
 
-
+#endif // WINDDK
 
 #endif
 

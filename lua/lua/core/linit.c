@@ -1,5 +1,5 @@
 /*
-** $Id: linit.c,v 1.39 2016/12/04 20:17:24 roberto Exp $
+** $Id: linit.c,v 1.39.1.1 2017/04/19 17:20:42 roberto Exp $
 ** Initialization of libraries for lua.c and other clients
 ** See Copyright Notice in lua.h
 */
@@ -44,8 +44,10 @@ static const luaL_Reg loadedlibs[] = {
   {LUA_LOADLIBNAME, luaopen_package},
   {LUA_COLIBNAME, luaopen_coroutine},
   {LUA_TABLIBNAME, luaopen_table},
-//{LUA_IOLIBNAME, luaopen_io},
-//{LUA_OSLIBNAME, luaopen_os},
+  {LUA_IOLIBNAME, luaopen_io},
+#ifndef WINDDK
+  {LUA_OSLIBNAME, luaopen_os},
+#endif // WINDDK
   {LUA_STRLIBNAME, luaopen_string},
   {LUA_MATHLIBNAME, luaopen_math},
   {LUA_UTF8LIBNAME, luaopen_utf8},

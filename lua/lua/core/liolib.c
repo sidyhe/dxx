@@ -1,5 +1,5 @@
 /*
-** $Id: liolib.c,v 2.151 2016/12/20 18:37:00 roberto Exp $
+** $Id: liolib.c,v 2.151.1.1 2017/04/19 17:29:57 roberto Exp $
 ** Standard I/O (and system) library
 ** See Copyright Notice in lua.h
 */
@@ -87,7 +87,7 @@ static int l_checkmode (const char *mode) {
 #define l_lockfile(f)		flockfile(f)
 #define l_unlockfile(f)		funlockfile(f)
 #else
-#define l_getc(f)		getc(f)
+#define l_getc(f)		fgetc(f)
 #define l_lockfile(f)		((void)0)
 #define l_unlockfile(f)		((void)0)
 #endif
@@ -206,11 +206,16 @@ static int aux_close (lua_State *L) {
 }
 
 
+static int f_close (lua_State *L) {
+  tofile(L);  /* make sure argument is an open stream */
+  return aux_close(L);
+}
+
+
 static int io_close (lua_State *L) {
   if (lua_isnone(L, 1))  /* no argument? */
     lua_getfield(L, LUA_REGISTRYINDEX, IO_OUTPUT);  /* use standard output */
-  tofile(L);  /* make sure argument is an open stream */
-  return aux_close(L);
+  return f_close(L);
 }
 
 
@@ -259,6 +264,7 @@ static int io_open (lua_State *L) {
 }
 
 
+#ifndef WINDDK
 /*
 ** function to close 'popen' files
 */
@@ -276,13 +282,16 @@ static int io_popen (lua_State *L) {
   p->closef = &io_pclose;
   return (p->f == NULL) ? luaL_fileresult(L, 0, filename) : 1;
 }
+#endif // WINDDK
 
 
+#ifndef WINDDK
 static int io_tmpfile (lua_State *L) {
   LStream *p = newfile(L);
   p->f = tmpfile();
   return (p->f == NULL) ? luaL_fileresult(L, 0, NULL) : 1;
 }
+#endif // WINDDK
 
 
 static FILE *getiofile (lua_State *L, const char *findex) {
@@ -467,7 +476,7 @@ static int read_number (lua_State *L, FILE *f) {
 
 
 static int test_eof (lua_State *L, FILE *f) {
-  int c = getc(f);
+  int c = l_getc(f);
   ungetc(c, f);  /* no-op when c == EOF */
   lua_pushliteral(L, "");
   return (c != EOF);
@@ -667,6 +676,7 @@ static int f_seek (lua_State *L) {
 }
 
 
+#ifndef WINDDK
 static int f_setvbuf (lua_State *L) {
   static const int mode[] = {_IONBF, _IOFBF, _IOLBF};
   static const char *const modenames[] = {"no", "full", "line", NULL};
@@ -676,6 +686,7 @@ static int f_setvbuf (lua_State *L) {
   int res = setvbuf(f, NULL, mode[op], (size_t)sz);
   return luaL_fileresult(L, res == 0, NULL);
 }
+#endif // WINDDK
 
 
 
@@ -699,9 +710,13 @@ static const luaL_Reg iolib[] = {
   {"lines", io_lines},
   {"open", io_open},
   {"output", io_output},
+#ifndef WINDDK
   {"popen", io_popen},
+#endif // WINDDK
   {"read", io_read},
+#ifndef WINDDK
   {"tmpfile", io_tmpfile},
+#endif // WINDDK
   {"type", io_type},
   {"write", io_write},
   {NULL, NULL}
@@ -712,12 +727,14 @@ static const luaL_Reg iolib[] = {
 ** methods for file handles
 */
 static const luaL_Reg flib[] = {
-  {"close", io_close},
+  {"close", f_close},
   {"flush", f_flush},
   {"lines", f_lines},
   {"read", f_read},
   {"seek", f_seek},
+#ifndef WINDDK
   {"setvbuf", f_setvbuf},
+#endif // WINDDK
   {"write", f_write},
   {"__gc", f_gc},
   {"__tostring", f_tostring},
@@ -762,10 +779,12 @@ static void createstdfile (lua_State *L, FILE *f, const char *k,
 LUAMOD_API int luaopen_io (lua_State *L) {
   luaL_newlib(L, iolib);  /* new module */
   createmeta(L);
+#ifndef WINDDK
   /* create (and set) default files */
   createstdfile(L, stdin, IO_INPUT, "stdin");
   createstdfile(L, stdout, IO_OUTPUT, "stdout");
   createstdfile(L, stderr, NULL, "stderr");
+#endif // WINDDK
   return 1;
 }
 

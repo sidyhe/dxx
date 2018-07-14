@@ -1,5 +1,5 @@
 /*
-** $Id: loadlib.c,v 1.130 2017/01/12 17:14:26 roberto Exp $
+** $Id: loadlib.c,v 1.130.1.1 2017/04/19 17:20:42 roberto Exp $
 ** Dynamic library loader for Lua
 ** See Copyright Notice in lua.h
 **
@@ -10,7 +10,6 @@
 
 #define loadlib_c
 #define LUA_LIB
-#include <ntddk.h>
 
 #include "lprefix.h"
 
@@ -148,7 +147,7 @@ static lua_CFunction lsys_sym (lua_State *L, void *lib, const char *sym) {
 ** =======================================================================
 */
 
-// #include <windows.h>
+#include <windows.h>
 
 
 /*
@@ -167,27 +166,22 @@ static lua_CFunction lsys_sym (lua_State *L, void *lib, const char *sym) {
 ** of LUA_EXEC_DIR with the executable's path.
 */
 static void setprogdir (lua_State *L) {
-  /*
   char buff[MAX_PATH + 1];
   char *lb;
   DWORD nsize = sizeof(buff)/sizeof(char);
-  DWORD n = GetModuleFileNameA(NULL, buff, nsize);  //* get exec. name 
-
+  DWORD n = GetModuleFileNameA(NULL, buff, nsize);  /* get exec. name */
   if (n == 0 || n == nsize || (lb = strrchr(buff, '\\')) == NULL)
     luaL_error(L, "unable to get ModuleFileName");
   else {
-    *lb = '\0';  //* cut name on the last '\\' to get the path 
+    *lb = '\0';  /* cut name on the last '\\' to get the path */
     luaL_gsub(L, lua_tostring(L, -1), LUA_EXEC_DIR, buff);
-    lua_remove(L, -2);  //* remove original string 
+    lua_remove(L, -2);  /* remove original string */
   }
-  */
-  char buff[] = "\\SystemRoot";
-  luaL_gsub(L, lua_tostring(L, -1), LUA_EXEC_DIR, buff);
-  lua_remove(L, -2);  //* remove original string
 }
 
 
-/*
+
+
 static void pusherror (lua_State *L) {
   int error = GetLastError();
   char buffer[128];
@@ -197,34 +191,24 @@ static void pusherror (lua_State *L) {
   else
     lua_pushfstring(L, "system error %d\n", error);
 }
-*/
 
 static void lsys_unloadlib (void *lib) {
-  lib;
-//FreeLibrary((HMODULE)lib);
+  FreeLibrary((HMODULE)lib);
 }
 
 
 static void *lsys_load (lua_State *L, const char *path, int seeglb) {
-  L; path; seeglb;
-  /*
   HMODULE lib = LoadLibraryExA(path, NULL, LUA_LLE_FLAGS);
-  (void)(seeglb);  // not used: symbols are 'global' by default
+  (void)(seeglb);  /* not used: symbols are 'global' by default */
   if (lib == NULL) pusherror(L);
   return lib;
-  */
-  return NULL;
 }
 
 
 static lua_CFunction lsys_sym (lua_State *L, void *lib, const char *sym) {
-  L; lib; sym;
-  /*
   lua_CFunction f = (lua_CFunction)GetProcAddress((HMODULE)lib, sym);
   if (f == NULL) pusherror(L);
   return f;
-  */
-  return NULL;
 }
 
 /* }====================================================== */
@@ -306,15 +290,10 @@ static int noenv (lua_State *L) {
 static void setpath (lua_State *L, const char *fieldname,
                                    const char *envname,
                                    const char *dft) {
-  /*
   const char *nver = lua_pushfstring(L, "%s%s", envname, LUA_VERSUFFIX);
-  const char *path = getenv(nver);  // use versioned name
-  if (path == NULL)  // no environment variable?
-    path = getenv(envname);  // try unversioned name
-  */
-  const char *path = NULL;
-  lua_pushfstring(L, "%s%s", envname, LUA_VERSUFFIX);
-
+  const char *path = getenv(nver);  /* use versioned name */
+  if (path == NULL)  /* no environment variable? */
+    path = getenv(envname);  /* try unversioned name */
   if (path == NULL || noenv(L))  /* no environment variable? */
     lua_pushstring(L, dft);  /* use default */
   else {
@@ -435,36 +414,10 @@ static int ll_loadlib (lua_State *L) {
 
 
 static int readable (const char *filename) {
-  int is_readable = 0;
-  /*
-  FILE *f = fopen(filename, "r");  // try to open file
-  if (f == NULL) return 0;  // open failed
+  FILE *f = fopen(filename, "r");  /* try to open file */
+  if (f == NULL) return 0;  /* open failed */
   fclose(f);
   return 1;
-  */
-  NTSTATUS status;
-  ANSI_STRING name_ansi;
-  UNICODE_STRING name_unicode;
-
-  RtlInitAnsiString(&name_ansi, filename);
-  status = RtlAnsiStringToUnicodeString(&name_unicode, &name_ansi, TRUE);
-  if (NT_SUCCESS(status))
-  {
-	  HANDLE hFile;
-	  IO_STATUS_BLOCK isb;
-	  OBJECT_ATTRIBUTES oa;
-
-	  InitializeObjectAttributes(&oa, &name_unicode, OBJ_KERNEL_HANDLE | OBJ_CASE_INSENSITIVE, NULL, NULL);
-	  status = ZwOpenFile(&hFile, FILE_GENERIC_READ, &oa, &isb, FILE_SHARE_READ, FILE_NON_DIRECTORY_FILE | FILE_SYNCHRONOUS_IO_NONALERT);
-	  if (NT_SUCCESS(status))
-	  {
-		  ZwClose(hFile);
-		  is_readable = 1;
-	  }
-	  RtlFreeUnicodeString(&name_unicode);
-  }
-
-  return is_readable;
 }
 
 
@@ -545,6 +498,62 @@ static int searcher_Lua (lua_State *L) {
   filename = findfile(L, name, "path", LUA_LSUBSEP);
   if (filename == NULL) return 1;  /* module not found in this path */
   return checkload(L, (luaL_loadfile(L, filename) == LUA_OK), filename);
+}
+
+
+/*
+** Try to find a load function for module 'modname' at file 'filename'.
+** First, change '.' to '_' in 'modname'; then, if 'modname' has
+** the form X-Y (that is, it has an "ignore mark"), build a function
+** name "luaopen_X" and look for it. (For compatibility, if that
+** fails, it also tries "luaopen_Y".) If there is no ignore mark,
+** look for a function named "luaopen_modname".
+*/
+static int loadfunc (lua_State *L, const char *filename, const char *modname) {
+  const char *openfunc;
+  const char *mark;
+  modname = luaL_gsub(L, modname, ".", LUA_OFSEP);
+  mark = strchr(modname, *LUA_IGMARK);
+  if (mark) {
+    int stat;
+    openfunc = lua_pushlstring(L, modname, mark - modname);
+    openfunc = lua_pushfstring(L, LUA_POF"%s", openfunc);
+    stat = lookforfunc(L, filename, openfunc);
+    if (stat != ERRFUNC) return stat;
+    modname = mark + 1;  /* else go ahead and try old-style name */
+  }
+  openfunc = lua_pushfstring(L, LUA_POF"%s", modname);
+  return lookforfunc(L, filename, openfunc);
+}
+
+
+static int searcher_C (lua_State *L) {
+  const char *name = luaL_checkstring(L, 1);
+  const char *filename = findfile(L, name, "cpath", LUA_CSUBSEP);
+  if (filename == NULL) return 1;  /* module not found in this path */
+  return checkload(L, (loadfunc(L, filename, name) == 0), filename);
+}
+
+
+static int searcher_Croot (lua_State *L) {
+  const char *filename;
+  const char *name = luaL_checkstring(L, 1);
+  const char *p = strchr(name, '.');
+  int stat;
+  if (p == NULL) return 0;  /* is root */
+  lua_pushlstring(L, name, p - name);
+  filename = findfile(L, lua_tostring(L, -1), "cpath", LUA_CSUBSEP);
+  if (filename == NULL) return 1;  /* root not found */
+  if ((stat = loadfunc(L, filename, name)) != 0) {
+    if (stat != ERRFUNC)
+      return checkload(L, 0, filename);  /* real error */
+    else {  /* open function not found */
+      lua_pushfstring(L, "\n\tno module '%s' in file '%s'", name, filename);
+      return 1;
+    }
+  }
+  lua_pushstring(L, filename);  /* will be 2nd argument to module */
+  return 2;
 }
 
 
@@ -722,7 +731,8 @@ static const luaL_Reg ll_funcs[] = {
 
 
 static void createsearcherstable (lua_State *L) {
-  static const lua_CFunction searchers[] = {searcher_preload, searcher_Lua, NULL};
+  static const lua_CFunction searchers[] =
+    {searcher_preload, searcher_Lua, searcher_C, searcher_Croot, NULL};
   int i;
   /* create 'searchers' table */
   lua_createtable(L, sizeof(searchers)/sizeof(searchers[0]) - 1, 0);

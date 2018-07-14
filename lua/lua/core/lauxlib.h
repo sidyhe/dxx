@@ -1,5 +1,5 @@
 /*
-** $Id: lauxlib.h,v 1.131 2016/12/06 14:54:31 roberto Exp $
+** $Id: lauxlib.h,v 1.131.1.1 2017/04/19 17:20:42 roberto Exp $
 ** Auxiliary functions for building Lua libraries
 ** See Copyright Notice in lua.h
 */
@@ -7,7 +7,7 @@
 
 #ifndef lauxlib_h
 #define lauxlib_h
-#include <ntddk.h>
+
 
 #include <stddef.h>
 #include <stdio.h>
@@ -220,18 +220,18 @@ LUALIB_API void (luaL_openlib) (lua_State *L, const char *libname,
 
 /* print a string */
 #if !defined(lua_writestring)
-#define lua_writestring(s,l)   DbgPrint(s, l)// fwrite((s), sizeof(char), (l), stdout)
+#define lua_writestring(s,l)   fwrite((s), sizeof(char), (l), stdout)
 #endif
 
 /* print a newline and flush the output */
 #if !defined(lua_writeline)
-#define lua_writeline()        DbgPrint("\n") //(lua_writestring("\n", 1), fflush(stdout))
+#define lua_writeline()        (lua_writestring("\n", 1), fflush(stdout))
 #endif
 
 /* print an error message */
 #if !defined(lua_writestringerror)
 #define lua_writestringerror(s,p) \
-        DbgPrint(s, p) // (fprintf(stderr, (s), (p)), fflush(stderr))
+        (fprintf(stderr, (s), (p)), fflush(stderr))
 #endif
 
 /* }================================================================== */

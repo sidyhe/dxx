@@ -1,5 +1,5 @@
 /*
-** $Id: ldo.c,v 2.157 2016/12/13 15:52:21 roberto Exp $
+** $Id: ldo.c,v 2.157.1.1 2017/04/19 17:20:42 roberto Exp $
 ** Stack and Call structure of Lua
 ** See Copyright Notice in lua.h
 */
@@ -70,21 +70,10 @@
 #else							/* }{ */
 
 /* ISO C handling with long jumps */
-
 #define LUAI_THROW(L,c)		longjmp((c)->b, 1)
 #define LUAI_TRY(L,c,a)		if (setjmp((c)->b) == 0) { a }
-#define luai_jmpbuf			jmp_buf
+#define luai_jmpbuf		jmp_buf
 
-/*
-// Windows kennel error handler
-#define LUAI_ERRNO			0xD2171217
-#define luai_jmpbuf			int // dummy variable
-#define LUAI_TRY(L,c,a)		\
-__try { a } \
-__except(GetExceptionCode() == LUAI_ERRNO ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) \
-{ if ((c)->status == 0) (c)->status = -1; }
-#define LUAI_THROW(L,c)		ExRaiseStatus(LUAI_ERRNO)
-*/
 #endif							/* } */
 
 #endif							/* } */

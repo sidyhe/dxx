@@ -1,12 +1,11 @@
 /*
-** $Id: lauxlib.c,v 1.289 2016/12/20 18:37:00 roberto Exp $
+** $Id: lauxlib.c,v 1.289.1.1 2017/04/19 17:20:42 roberto Exp $
 ** Auxiliary functions for building Lua libraries
 ** See Copyright Notice in lua.h
 */
 
 #define lauxlib_c
 #define LUA_LIB
-#include <ntddk.h>
 
 #include "lprefix.h"
 
@@ -16,6 +15,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 
 /*
 ** This file uses only the official API of Lua.
@@ -632,149 +632,12 @@ LUALIB_API void luaL_unref (lua_State *L, int t, int ref) {
 ** =======================================================
 */
 
-typedef struct _KFILE {
-	size_t pos;
-	size_t size;
-	char* buffer;
-}KFILE, *PKFILE;
-
 typedef struct LoadF {
   int n;  /* number of pre-read characters */
-  KFILE* f;  /* file being read */
+  FILE *f;  /* file being read */
   char buff[BUFSIZ];  /* area for reading file */
 } LoadF;
 
-ULONG fget_size(HANDLE hFile) {
-	IO_STATUS_BLOCK StatusBlock;
-	FILE_STANDARD_INFORMATION Info;
-
-	if (NT_SUCCESS(ZwQueryInformationFile(hFile, &StatusBlock, &Info, sizeof(Info), FileStandardInformation))) {
-		return Info.EndOfFile.LowPart;
-	}
-	return 0;
-}
-
-PVOID fget_buffer(PUNICODE_STRING lpFileName, PSIZE_T lpcbFileBuffer OPTIONAL) {
-	HANDLE hFile;
-	IO_STATUS_BLOCK isb;
-	OBJECT_ATTRIBUTES oa;
-
-	InitializeObjectAttributes(&oa, lpFileName, OBJ_CASE_INSENSITIVE | OBJ_KERNEL_HANDLE, NULL, NULL);
-	if (NT_SUCCESS(ZwOpenFile(&hFile, FILE_READ_DATA | SYNCHRONIZE, &oa, &isb, FILE_SHARE_READ, FILE_SYNCHRONOUS_IO_NONALERT))) {
-		ULONG cbFileBuffer;
-		PVOID lpFileBuffer;
-
-		cbFileBuffer = fget_size(hFile);
-		if (cbFileBuffer > 0) {
-			lpFileBuffer = ExAllocatePoolWithTag(PagedPool, cbFileBuffer, 0);
-			if (lpFileBuffer != NULL) {
-				if (NT_SUCCESS(ZwReadFile(hFile, NULL, NULL, NULL, &isb, lpFileBuffer, cbFileBuffer, NULL, NULL))) {
-					ZwClose(hFile);
-
-					if (lpcbFileBuffer != NULL) {
-						*lpcbFileBuffer = cbFileBuffer;
-					}
-
-					return lpFileBuffer;
-				}
-				else {
-					ExFreePool(lpFileBuffer);
-				}
-			}
-		}
-		ZwClose(hFile);
-	}
-	return NULL;
-}
-
-PKFILE fopen_nt(char const* _FileName, char const* _Mode) {
-	_Mode;
-	PKFILE kf = (PKFILE)ExAllocatePoolWithTag(PagedPool, sizeof(KFILE), 'laux');
-
-	if (kf)
-	{
-		NTSTATUS status;
-		ANSI_STRING name_ansi;
-		UNICODE_STRING name_unicode;
-
-		kf->pos = 0;
-		kf->size = 0;
-		kf->buffer = NULL;
-
-		RtlInitAnsiString(&name_ansi, _FileName);
-		status = RtlAnsiStringToUnicodeString(&name_unicode, &name_ansi, TRUE);
-		if (NT_SUCCESS(status))
-		{
-			kf->buffer = fget_buffer(&name_unicode, &kf->size);
-
-			RtlFreeUnicodeString(&name_unicode);
-		}
-
-		if (!kf->buffer)
-		{
-			ExFreePool(kf);
-			kf = NULL;
-		}
-	}
-
-	return kf;
-}
-
-int fclose_nt(PKFILE _Stream) {
-	ExFreePool(_Stream->buffer);
-	ExFreePool(_Stream);
-	return 0;
-}
-
-int feof_nt(PKFILE _Stream) {
-	return (_Stream->pos < _Stream->size ? 0 : 1);
-}
-
-PKFILE freopen_nt(char const* _FileName, char const* _Mode, PKFILE _Stream) {
-	_Mode;
-	_FileName;
-	_Stream->pos = 0;
-
-	return _Stream;
-}
-
-int ferror_nt(PKFILE _Stream) {
-	_Stream;
-
-	return 0;
-}
-
-int getc_nt(PKFILE _Stream) {
-	if (feof_nt(_Stream))
-		return EOF;
-
-	return _Stream->buffer[_Stream->pos++];
-}
-
-size_t fread_nt(void* _Buffer, size_t _ElementSize, size_t _ElementCount, PKFILE _Stream) {
-	size_t rd_size = _ElementCount;
-	size_t rd_real_size = 0;
-
-	if (_ElementSize != 1)
-	{
-		KdBreakPoint();
-		return 0; // unreachable
-	}
-
-	if (feof_nt(_Stream))
-		return 0;
-
-	rd_real_size = _Stream->size - _Stream->pos;
-	if (rd_real_size > rd_size)
-	{
-		rd_real_size = rd_size;
-	}
-
-	memcpy(_Buffer, _Stream->buffer + _Stream->pos, rd_real_size);
-	_Stream->pos += rd_real_size;
-
-	return rd_real_size;
-}
 
 static const char *getF (lua_State *L, void *ud, size_t *size) {
   LoadF *lf = (LoadF *)ud;
@@ -787,8 +650,8 @@ static const char *getF (lua_State *L, void *ud, size_t *size) {
     /* 'fread' can return > 0 *and* set the EOF flag. If next call to
        'getF' called 'fread', it might still wait for user input.
        The next check avoids this problem. */
-    if (feof_nt(lf->f)) return NULL;
-    *size = fread_nt(lf->buff, 1, sizeof(lf->buff), lf->f);  /* read block */
+    if (feof(lf->f)) return NULL;
+    *size = fread(lf->buff, 1, sizeof(lf->buff), lf->f);  /* read block */
   }
   return lf->buff;
 }
@@ -808,12 +671,20 @@ static int skipBOM (LoadF *lf) {
   int c;
   lf->n = 0;
   do {
-    c = getc_nt(lf->f);
+#ifdef WINDDK
+    c = fgetc(lf->f);
+#else
+    c = getc(lf->f);
+#endif // WINDDK
     if (c == EOF || c != *(const unsigned char *)p++) return c;
     lf->buff[lf->n++] = c;  /* to be read by the parser */
   } while (*p != '\0');
   lf->n = 0;  /* prefix matched; discard it */
-  return getc_nt(lf->f);  /* return next character */
+#ifdef WINDDK
+  return fgetc(lf->f);
+#else
+  return getc(lf->f);  /* return next character */
+#endif // WINDDK
 }
 
 
@@ -828,42 +699,59 @@ static int skipcomment (LoadF *lf, int *cp) {
   int c = *cp = skipBOM(lf);
   if (c == '#') {  /* first line is a comment (Unix exec. file)? */
     do {  /* skip first line */
-      c = getc_nt(lf->f);
+#ifdef WINDDK
+      c = fgetc(lf->f);
+#else
+      c = getc(lf->f);
+#endif // WINDDK
     } while (c != EOF && c != '\n');
-    *cp = getc_nt(lf->f);  /* skip end-of-line, if present */
+#ifdef WINDDK
+    *cp = fgetc(lf->f);
+#else
+    *cp = getc(lf->f);  /* skip end-of-line, if present */
+#endif // WINDDK
     return 1;  /* there was a comment */
   }
   else return 0;  /* no comment */
 }
 
 
-LUALIB_API int luaL_loadfilex (lua_State *L, const char *filename, const char *mode) {
+LUALIB_API int luaL_loadfilex (lua_State *L, const char *filename,
+                                             const char *mode) {
   LoadF lf;
   int status, readstatus;
   int c;
   int fnameindex = lua_gettop(L) + 1;  /* index of filename on the stack */
   if (filename == NULL) {
-//  lua_pushliteral(L, "=stdin");
-//  lf.f = stdin;
-    return LUA_ERRERR;
+#ifdef WINDDK
+    return errfile(L, "open", fnameindex);
+#else
+    lua_pushliteral(L, "=stdin");
+    lf.f = stdin;
+#endif // WINDDK
   }
   else {
     lua_pushfstring(L, "@%s", filename);
-    lf.f = fopen_nt(filename, "r");
+    lf.f = fopen(filename, "r");
     if (lf.f == NULL) return errfile(L, "open", fnameindex);
   }
   if (skipcomment(&lf, &c))  /* read initial portion */
     lf.buff[lf.n++] = '\n';  /* add line to correct line numbers */
   if (c == LUA_SIGNATURE[0] && filename) {  /* binary file? */
-    lf.f = freopen_nt(filename, "rb", lf.f);  /* reopen in binary mode */
+#ifdef WINDDK
+	  fclose(lf.f);
+	  lf.f = fopen(filename, "rb");
+#else
+	  lf.f = freopen(filename, "rb", lf.f);  /* reopen in binary mode */
+#endif // WINDDK
     if (lf.f == NULL) return errfile(L, "reopen", fnameindex);
     skipcomment(&lf, &c);  /* re-read initial portion */
   }
   if (c != EOF)
     lf.buff[lf.n++] = c;  /* 'c' is the first character of the stream */
   status = lua_load(L, getF, &lf, lua_tostring(L, -1), mode);
-  readstatus = ferror_nt(lf.f);
-  if (filename) fclose_nt(lf.f);  /* close file (even in case of errors) */
+  readstatus = ferror(lf.f);
+  if (filename) fclose(lf.f);  /* close file (even in case of errors) */
   if (readstatus) {
     lua_settop(L, fnameindex);  /* ignore results from 'lua_load' */
     return errfile(L, "read", fnameindex);

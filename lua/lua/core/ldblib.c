@@ -1,5 +1,5 @@
 /*
-** $Id: ldblib.c,v 1.151 2015/11/23 11:29:43 roberto Exp $
+** $Id: ldblib.c,v 1.151.1.1 2017/04/19 17:20:42 roberto Exp $
 ** Interface from Lua to its debug API
 ** See Copyright Notice in lua.h
 */
@@ -398,7 +398,8 @@ static int db_gethook (lua_State *L) {
   return 3;
 }
 
-/*
+
+#ifndef WINDDK
 static int db_debug (lua_State *L) {
   for (;;) {
     char buffer[250];
@@ -409,10 +410,11 @@ static int db_debug (lua_State *L) {
     if (luaL_loadbuffer(L, buffer, strlen(buffer), "=(debug command)") ||
         lua_pcall(L, 0, 0, 0))
       lua_writestringerror("%s\n", lua_tostring(L, -1));
-    lua_settop(L, 0);  //* remove eventual returns
+    lua_settop(L, 0);  /* remove eventual returns */
   }
 }
-*/
+#endif // WINDDK
+
 
 static int db_traceback (lua_State *L) {
   int arg;
@@ -429,7 +431,9 @@ static int db_traceback (lua_State *L) {
 
 
 static const luaL_Reg dblib[] = {
-//{"debug", db_debug},
+#ifndef WINDDK
+  {"debug", db_debug},
+#endif // WINDDK
   {"getuservalue", db_getuservalue},
   {"gethook", db_gethook},
   {"getinfo", db_getinfo},
