@@ -12,7 +12,9 @@
 #ifndef EASTL_STRING_VIEW_H
 #define EASTL_STRING_VIEW_H
 
-EA_ONCE()
+#if defined(EA_PRAGMA_ONCE_SUPPORTED)
+	#pragma once // Some compilers (e.g. VC++) benefit significantly from using this. We've measured 3-4% build speed improvements in apps as a result.
+#endif
 
 #include <EASTL/internal/config.h>
 #include <EASTL/internal/char_traits.h>
@@ -50,7 +52,7 @@ namespace eastl
 		EA_CONSTEXPR basic_string_view() EA_NOEXCEPT : mpBegin(nullptr), mnCount(0) {}
 		EA_CONSTEXPR basic_string_view(const basic_string_view& other) EA_NOEXCEPT = default;
 		EA_CONSTEXPR basic_string_view(const T* s, size_type count) : mpBegin(s), mnCount(count) {}
-		EA_CONSTEXPR basic_string_view(const T* s) : mpBegin(s), mnCount(CharStrlen(s)) {}
+		EA_CONSTEXPR basic_string_view(const T* s) : mpBegin(s), mnCount(s != nullptr ? CharStrlen(s) : 0) {}
 		basic_string_view& operator=(const basic_string_view& view) = default;
 
 		// 21.4.2.2, iterator support
@@ -158,9 +160,19 @@ namespace eastl
 			return this_type(mpBegin + pos, count);
 		}
 
-		EA_CONSTEXPR int compare(basic_string_view sw) const EA_NOEXCEPT
+		static EA_CPP14_CONSTEXPR int compare(const T* pBegin1, const T* pEnd1, const T* pBegin2, const T* pEnd2)
 		{
-			return Compare(mpBegin, sw.data(), eastl::min_alt(size(), sw.size()));
+			const ptrdiff_t n1   = pEnd1 - pBegin1;
+			const ptrdiff_t n2   = pEnd2 - pBegin2;
+			const ptrdiff_t nMin = eastl::min_alt(n1, n2);
+			const int       cmp  = Compare(pBegin1, pBegin2, (size_t)nMin);
+
+			return (cmp != 0 ? cmp : (n1 < n2 ? -1 : (n1 > n2 ? 1 : 0)));
+		}
+
+		EA_CPP14_CONSTEXPR int compare(basic_string_view sw) const EA_NOEXCEPT
+		{
+			return compare(mpBegin, mpBegin + mnCount, sw.mpBegin, sw.mpBegin + sw.mnCount);
 		}
 
 		EA_CONSTEXPR int compare(size_type pos1, size_type count1, basic_string_view sw) const
@@ -394,6 +406,38 @@ namespace eastl
 		{
 			return find_last_not_of(s, pos, (size_type)CharStrlen(s));
 		}
+
+		// starts_with
+		EA_CONSTEXPR bool starts_with(basic_string_view x) const EA_NOEXCEPT
+		{
+			return (size() >= x.size()) && (compare(0, x.size(), x) == 0);
+		}
+
+		EA_CONSTEXPR bool starts_with(T x) const EA_NOEXCEPT
+		{
+			return starts_with(basic_string_view(&x, 1));
+		}
+
+		EA_CONSTEXPR bool starts_with(const T* s) const
+		{
+			return starts_with(basic_string_view(s));
+		}
+
+		// ends_with
+		EA_CONSTEXPR bool ends_with(basic_string_view x) const EA_NOEXCEPT
+		{
+			return (size() >= x.size()) && (compare(size() - x.size(), npos, x) == 0);
+		}
+
+		EA_CONSTEXPR bool ends_with(T x) const EA_NOEXCEPT
+		{
+			return ends_with(basic_string_view(&x, 1));
+		}
+
+		EA_CONSTEXPR bool ends_with(const T* s) const
+		{
+			return ends_with(basic_string_view(s));
+		}
 	};
 
 
@@ -458,10 +502,11 @@ namespace eastl
 	{
 		size_t operator()(const string_view& x) const
 		{
-			const unsigned char* p = (const unsigned char*)x.data(); // To consider: limit p to at most 256 chars.
-			unsigned int c, result = 2166136261U; // We implement an FNV-like string hash. 
-			while((c = *p++) != 0) // Using '!=' disables compiler warnings.
-				result = (result * 16777619) ^ c;
+			string_view::const_iterator p = x.cbegin();
+			string_view::const_iterator end = x.cend();
+			uint32_t result = 2166136261U; // We implement an FNV-like string hash.
+			while (p != end)
+				result = (result * 16777619) ^ (uint8_t)*p++;
 			return (size_t)result;
 		}
 	};
@@ -470,10 +515,11 @@ namespace eastl
 	{
 		size_t operator()(const u16string_view& x) const
 		{
-			const char16_t* p = x.data();
-			unsigned int c, result = 2166136261U;
-			while((c = *p++) != 0)
-				result = (result * 16777619) ^ c;
+			u16string_view::const_iterator p = x.cbegin();
+			u16string_view::const_iterator end = x.cend();
+			uint32_t result = 2166136261U;
+			while (p != end)
+				result = (result * 16777619) ^ (uint16_t)*p++;
 			return (size_t)result;
 		}
 	};
@@ -482,10 +528,11 @@ namespace eastl
 	{
 		size_t operator()(const u32string_view& x) const
 		{
-			const char32_t* p = x.data();
-			unsigned int c, result = 2166136261U;
-			while((c = (unsigned int)*p++) != 0)
-				result = (result * 16777619) ^ c;
+			u32string_view::const_iterator p = x.cbegin();
+			u32string_view::const_iterator end = x.cend();
+			uint32_t result = 2166136261U;
+			while (p != end)
+				result = (result * 16777619) ^ (uint32_t)*p++;
 			return (size_t)result;
 		}
 	};
@@ -495,10 +542,11 @@ namespace eastl
 		{
 			size_t operator()(const wstring_view& x) const
 			{
-				const wchar_t* p = x.data();
-				unsigned int c, result = 2166136261U;
-				while((c = (unsigned int)*p++) != 0)
-					result = (result * 16777619) ^ c;
+				wstring_view::const_iterator p = x.cbegin();
+				wstring_view::const_iterator end = x.cend();
+				uint32_t result = 2166136261U;
+				while (p != end)
+					result = (result * 16777619) ^ (uint32_t)*p++;
 				return (size_t)result;
 			}
 		};

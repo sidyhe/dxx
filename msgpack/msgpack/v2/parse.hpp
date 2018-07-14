@@ -333,7 +333,6 @@ inline parse_return context<VisitorHolder>::execute(const char* data, std::size_
             } else {
                 off = m_current - m_start;
                 holder().visitor().parse_error(off - 1, off);
-                return PARSE_PARSE_ERROR;
             }
             // end MSGPACK_CS_HEADER
         }
@@ -615,7 +614,6 @@ inline parse_return context<VisitorHolder>::execute(const char* data, std::size_
             default:
                 off = m_current - m_start;
                 holder().visitor().parse_error(n - m_start - 1, n - m_start);
-                return PARSE_PARSE_ERROR;
             }
         }
     } while(m_current != pe);
@@ -1043,7 +1041,6 @@ parse_imp(const char* data, size_t len, size_t& off, Visitor& v) {
     if(len <= noff) {
         // FIXME
         v.insufficient_bytes(noff, noff);
-        return PARSE_CONTINUE;
     }
     detail::parse_helper<Visitor> h(v);
     parse_return ret = h.execute(data, len, noff);
@@ -1051,7 +1048,6 @@ parse_imp(const char* data, size_t len, size_t& off, Visitor& v) {
     switch (ret) {
     case PARSE_CONTINUE:
         v.insufficient_bytes(noff - 1, noff);
-        return ret;
     case PARSE_SUCCESS:
         if(noff < len) {
             return PARSE_EXTRA_BYTES;

@@ -118,6 +118,10 @@ namespace eastl
 	// Old style macro, for bacwards compatibility:
 	#define EASTL_DECLARE_POD(T) namespace eastl{ template <> struct is_pod<T> : public true_type{}; template <> struct is_pod<const T> : public true_type{}; }
 
+	#if EASTL_VARIABLE_TEMPLATES_ENABLED
+		template <class T>
+		EA_CONSTEXPR bool is_pod_v = is_pod<T>::value;
+    #endif
 
 
 	///////////////////////////////////////////////////////////////////////
@@ -357,6 +361,10 @@ namespace eastl
 	// Old style macro, for bacwards compatibility:
 	#define EASTL_DECLARE_TRIVIAL_DESTRUCTOR(T) namespace eastl{ template <> struct has_trivial_destructor<T> : public true_type{}; template <> struct has_trivial_destructor<const T> : public true_type{}; }
 
+	#if EASTL_VARIABLE_TEMPLATES_ENABLED
+		template <class T>
+		EA_CONSTEXPR bool has_trivial_destructor_v = has_trivial_destructor<T>::value;
+    #endif
 
 
 	///////////////////////////////////////////////////////////////////////
@@ -581,6 +589,11 @@ namespace eastl
 		struct is_literal_type : public eastl::integral_constant<bool, eastl::is_scalar<typename eastl::remove_reference<typename eastl::remove_all_extents<T>::type>::type>::value>{};
 	#endif
 
+	#if EASTL_VARIABLE_TEMPLATES_ENABLED
+		template <class T>
+		EA_CONSTEXPR bool is_literal_type_v = is_literal_type<T>::value;
+    #endif
+
 
 
 	///////////////////////////////////////////////////////////////////////
@@ -644,8 +657,7 @@ namespace eastl
 	// up obj1 are copied into obj2, obj2 shall subsequently hold the 
 	// same value as obj1. In other words, you can memcpy/memmove it.
 	///////////////////////////////////////////////////////////////////////
-
-	#if EASTL_COMPILER_INTRINSIC_TYPE_TRAITS_AVAILABLE && ((defined(_MSC_VER) && (_MSC_VER >= 1700)) || (defined(EA_COMPILER_CLANG) && EA_COMPILER_HAS_FEATURE(is_trivially_copyable)))
+	#if EASTL_COMPILER_INTRINSIC_TYPE_TRAITS_AVAILABLE && ((defined(_MSC_VER) && (_MSC_VER >= 1700)) || (defined(EA_COMPILER_GNUC) && (EA_COMPILER_VERSION >= 5003)) || (defined(EA_COMPILER_CLANG) && EA_COMPILER_HAS_FEATURE(is_trivially_copyable)))
 		#define EASTL_TYPE_TRAIT_is_trivially_copyable_CONFORMANCE 1
 
 		// https://connect.microsoft.com/VisualStudio/feedback/details/808827/c-std-is-trivially-copyable-produces-wrong-result-for-arrays
@@ -689,6 +701,11 @@ namespace eastl
 			template <> struct is_trivially_copyable<const volatile T> : public eastl::integral_constant<bool, isTriviallyCopyable>  { }; \
 		}
 
+	#if EASTL_VARIABLE_TEMPLATES_ENABLED
+		template <class T>
+		EA_CONSTEXPR bool is_trivially_copyable_v = is_trivially_copyable<T>::value;
+    #endif
+
 
 	///////////////////////////////////////////////////////////////////////
 	// is_constructible
@@ -697,102 +714,77 @@ namespace eastl
 	//
 	///////////////////////////////////////////////////////////////////////
 
-	#if defined(EA_COMPILER_NO_VARIADIC_TEMPLATES) || defined(EA_COMPILER_NO_DECLTYPE) || EASTL_NO_RVALUE_REFERENCES
+	#define EASTL_TYPE_TRAIT_is_constructible_CONFORMANCE 1
 
-		// We currently take a simplified approach whereby we lump all deficient compilers together here, rather than
-		// implementing a version for compilers that support rvalue references but not variadic templates. However,
-		// we should eventually implement such a thing because VS2010 and VS2012 are exactly that: compilers that support
-		// decltype and rvalue references but not variadic templates.
+	// We implement a copy of move here has move_internal. We are currently stuck doing this because our move
+	// implementation is in <utility.h> and <utility.h> currently #includes us, and so we have a header 
+	// chicken-and-egg problem. To do: Resolve this, probably by putting eastl::move somewhere else.
+	template <typename T>
+	inline typename eastl::remove_reference<T>::type&& move_internal(T&& x) EA_NOEXCEPT
+		{ return ((typename eastl::remove_reference<T>::type&&)x); }
 
-		#define EASTL_TYPE_TRAIT_is_constructible_CONFORMANCE 0
+	template <typename T, class ...Args>
+	typename first_type_select<eastl::true_type, decltype(eastl::move_internal(T(eastl::declval<Args>()...)))>::type is(T&&, Args&& ...);
 
-		// Start by assuming the type is constructible, then below we subtract types that are known not-constructible.
-		// This can result in false-positives, which we normally avoid, but the use cases of this trait are such that
-		// we'd rather have false positives than false negatives. But we can revisit that if you have a problem.
+	template <typename T>
+	struct can_construct_scalar_helper
+	{
+			static eastl::true_type can(T);
+			static eastl::false_type can(...);
+	};
 
-		template <typename T>
-		struct is_constructible_helper
-			{ static const bool value = !eastl::is_void<T>::value && !eastl::is_function<T>::value && !eastl::is_abstract<T>::value; };
+	template <typename ...Args>
+	eastl::false_type is(argument_sink, Args&& ...);
 
-		template<typename T, typename Arg0 = eastl::unused, typename Arg1 = eastl::unused>
-		struct is_constructible 
-			{ static const bool value = eastl::is_constructible_helper<typename eastl::remove_all_extents<T>::type>::value && 
-									   !eastl::is_array_of_unknown_bounds<T>::value &&
-									   !eastl::is_reference<T>::value &&               // references can be copy constructed, but here we are testing for only default construction, which isn't possible for references.
-										eastl::is_same<Arg0, eastl::unused>::value &&  // We have no way of checking argument matches without decltype support, 
-										eastl::is_same<Arg1, eastl::unused>::value;    // so disallow them. This will result in cases being potentially false negatives.
-			};                                                                         // (To do:) However, we could easily add support for constructing a scalar from another single scalar or reference from something.
+	// Except for scalars and references (handled below), check for constructibility via decltype.
+	template <bool, typename T, typename... Args>
+	struct is_constructible_helper_2    // argument_sink will catch all T that is not constructible from the Args and denote false_type
+		: public eastl::identity<decltype(is(eastl::declval<T>(), eastl::declval<Args>()...))>::type {};
 
-	#else
-		#define EASTL_TYPE_TRAIT_is_constructible_CONFORMANCE 1
+	template <typename T>
+	struct is_constructible_helper_2<true, T>
+		: public eastl::is_scalar<T> {};
 
-		// We implement a copy of move here has move_internal. We are currently stuck doing this because our move
-		// implementation is in <utility.h> and <utility.h> currently #includes us, and so we have a header 
-		// chicken-and-egg problem. To do: Resolve this, probably by putting eastl::move somewhere else.
-		template <typename T>
-		inline typename eastl::remove_reference<T>::type&& move_internal(T&& x) EA_NOEXCEPT
-			{ return ((typename eastl::remove_reference<T>::type&&)x); }
+#pragma warning(push)
+#pragma warning(disable: 4244)
+	template <typename T, typename Arg0> // We handle the case of multiple arguments below (by disallowing them).
+	struct is_constructible_helper_2<true, T, Arg0>
+		: public eastl::identity<decltype(can_construct_scalar_helper<T>::can(eastl::declval<Arg0>()))>::type {};
+#pragma warning(pop)
 
-		template <typename T, class ...Args>
-		typename first_type_select<eastl::true_type, decltype(eastl::move_internal(T(eastl::declval<Args>()...)))>::type is(T&&, Args&& ...);
+	// Scalars and references can be constructed only with 0 or 1 argument. e.g the following is an invalid expression: int(17, 23)
+	template <typename T, typename Arg0, typename ...Args>
+	struct is_constructible_helper_2<true, T, Arg0, Args...>
+		: public eastl::false_type {};
 
-		template <typename T>
-		struct can_construct_scalar_helper
-		{
-				static eastl::true_type can(T);
-				static eastl::false_type can(...);
-		};
+	template <bool, typename T, typename... Args>
+	struct is_constructible_helper_1
+		: public is_constructible_helper_2<eastl::is_scalar<T>::value || eastl::is_reference<T>::value, T, Args...> {};
 
-		template <typename ...Args>
-		eastl::false_type is(argument_sink, Args&& ...);
+	// Unilaterally dismiss void, abstract, unknown bound arrays, and function types as not constructible.
+	template <typename T, typename... Args>
+	struct is_constructible_helper_1<true, T, Args...>
+		: public false_type {};
 
-		// Except for scalars and references (handled below), check for constructibility via decltype.
-		template <bool, typename T, typename... Args>
-		struct is_constructible_helper_2    // argument_sink will catch all T that is not constructible from the Args and denote false_type
-			: public eastl::identity<decltype(is(eastl::declval<T>(), eastl::declval<Args>()...))>::type {};
+	// is_constructible
+	template <typename T, typename... Args>
+	struct is_constructible
+		: public is_constructible_helper_1<(eastl::is_abstract<typename eastl::remove_all_extents<T>::type>::value || 
+											eastl::is_array_of_unknown_bounds<T>::value                            ||
+											eastl::is_function<typename eastl::remove_all_extents<T>::type>::value || 
+											eastl::has_void_arg<T, Args...>::value), 
+											T, Args...> {};
 
-		template <typename T>
-		struct is_constructible_helper_2<true, T>
-			: public eastl::is_scalar<T> {};
+	// Array types are constructible if constructed with no arguments and if their element type is default-constructible
+	template <typename Array, size_t N>
+	struct is_constructible_helper_2<false, Array[N]>
+		: public eastl::is_constructible<typename eastl::remove_all_extents<Array>::type> {};
 
-		template <typename T, typename Arg0> // We handle the case of multiple arguments below (by disallowing them).
-		struct is_constructible_helper_2<true, T, Arg0>
-			: public eastl::identity<decltype(can_construct_scalar_helper<T>::can(eastl::declval<Arg0>()))>::type {};
+	// Arrays with arguments are not constructible. e.g. the following is an invalid expression: int[3](37, 34, 12)
+	template <typename Array, size_t N, typename ...Args>
+	struct is_constructible_helper_2<false, Array[N], Args...>
+		: public eastl::false_type {};
 
-		// Scalars and references can be constructed only with 0 or 1 argument. e.g the following is an invalid expression: int(17, 23)
-		template <typename T, typename Arg0, typename ...Args>
-		struct is_constructible_helper_2<true, T, Arg0, Args...>
-			: public eastl::false_type {};
-
-		template <bool, typename T, typename... Args>
-		struct is_constructible_helper_1
-			: public is_constructible_helper_2<eastl::is_scalar<T>::value || eastl::is_reference<T>::value, T, Args...> {};
-
-		// Unilaterally dismiss void, abstract, unknown bound arrays, and function types as not constructible.
-		template <typename T, typename... Args>
-		struct is_constructible_helper_1<true, T, Args...>
-			: public false_type {};
-
-		// is_constructible
-		template <typename T, typename... Args>
-		struct is_constructible
-			: public is_constructible_helper_1<(eastl::is_abstract<typename eastl::remove_all_extents<T>::type>::value || 
-												eastl::is_array_of_unknown_bounds<T>::value                            ||
-												eastl::is_function<typename eastl::remove_all_extents<T>::type>::value || 
-												eastl::has_void_arg<T, Args...>::value), 
-												T, Args...> {};
-
-		// Array types are constructible if constructed with no arguments and if their element type is default-constructible
-		template <typename Array, size_t N>
-		struct is_constructible_helper_2<false, Array[N]>
-			: public eastl::is_constructible<typename eastl::remove_all_extents<Array>::type> {};
-
-		// Arrays with arguments are not constructible. e.g. the following is an invalid expression: int[3](37, 34, 12)
-		template <typename Array, size_t N, typename ...Args>
-		struct is_constructible_helper_2<false, Array[N], Args...>
-			: public eastl::false_type {};
-
-	#endif
 
 	// You need to manually declare const/volatile variants individually if you want them.
 	#define EASTL_DECLARE_IS_CONSTRUCTIBLE(T, U, isConstructible)                                                     \
@@ -800,6 +792,10 @@ namespace eastl
 			template <> struct is_constructible<T, U>  : public eastl::integral_constant<bool, isConstructible>  { }; \
 		}
 
+	#if EASTL_VARIABLE_TEMPLATES_ENABLED
+		template <class T, class... Args>
+		EA_CONSTEXPR bool is_constructible_v = is_constructible<T, Args...>::value;
+    #endif
 
 
 	///////////////////////////////////////////////////////////////////////
@@ -927,11 +923,9 @@ namespace eastl
 			struct is_trivially_constructible<T, T>
 				: public eastl::integral_constant<bool, eastl::is_constructible<T>::value && eastl::has_trivial_copy<T>::value> {};
 
-			#if !EASTL_NO_RVALUE_REFERENCES
-				template <typename T>
-				struct is_trivially_constructible<T, T&&>
-					: public eastl::integral_constant<bool, eastl::is_constructible<T>::value && eastl::has_trivial_copy<T>::value> {};
-			#endif
+			template <typename T>
+			struct is_trivially_constructible<T, T&&>
+				: public eastl::integral_constant<bool, eastl::is_constructible<T>::value && eastl::has_trivial_copy<T>::value> {};
 
 			template <typename T>
 			struct is_trivially_constructible<T, T&>
@@ -962,6 +956,11 @@ namespace eastl
 			template <> struct is_trivially_constructible<const volatile T> : public eastl::integral_constant<bool, isTriviallyConstructible>  { }; \
 		}
 
+	#if EASTL_VARIABLE_TEMPLATES_ENABLED
+		template <class T>
+		EA_CONSTEXPR bool is_trivially_constructible_v = is_trivially_constructible<T>::value;
+    #endif
+
 
 	///////////////////////////////////////////////////////////////////////
 	// is_trivially_default_constructible
@@ -976,6 +975,10 @@ namespace eastl
 	struct is_trivially_default_constructible 
 		: public eastl::is_trivially_constructible<T> {};
 
+	#if EASTL_VARIABLE_TEMPLATES_ENABLED
+		template <class T>
+		EA_CONSTEXPR bool is_trivially_default_constructible_v = is_trivially_default_constructible<T>::value;
+    #endif
 
 
 	///////////////////////////////////////////////////////////////////////
@@ -1008,6 +1011,13 @@ namespace eastl
 			: public eastl::integral_constant<bool, eastl::is_trivially_copyable<T>::value && eastl::is_trivially_default_constructible<T>::value> {};
 	#endif
 
+	#if EASTL_VARIABLE_TEMPLATES_ENABLED
+		template <class T>
+		EA_CONSTEXPR bool is_trivial_v = is_trivial<T>::value;
+    #endif
+
+	
+
 	///////////////////////////////////////////////////////////////////////
 	// is_nothrow_constructible
 	//
@@ -1017,117 +1027,84 @@ namespace eastl
 	// be complete types, (possibly cv-qualified) void, or arrays of unknown bound.
 	//
 	///////////////////////////////////////////////////////////////////////
-
-	#if defined(EA_COMPILER_NO_VARIADIC_TEMPLATES)
+	#if defined(EA_COMPILER_NO_NOEXCEPT)
 
 		#define EASTL_TYPE_TRAIT_is_nothrow_constructible_CONFORMANCE 0
 
-		template <typename T, typename Arg0 = eastl::unused, typename Arg1 = eastl::unused>
+		template <typename T, typename... Args>
 		struct is_nothrow_constructible
 			: public eastl::false_type {};
 
 		template <typename T>
-		struct is_nothrow_constructible<T, eastl::unused, eastl::unused>
+		struct is_nothrow_constructible<T>
 			: public eastl::integral_constant<bool, eastl::has_nothrow_constructor<T>::value> {};
 
 		template <typename T>
-		struct is_nothrow_constructible<T, T, eastl::unused>
+		struct is_nothrow_constructible<T, T>
 			: public eastl::integral_constant<bool, eastl::has_nothrow_copy<T>::value> {};
 
 		template <typename T>
-		struct is_nothrow_constructible<T, const T&, eastl::unused>
+		struct is_nothrow_constructible<T, const T&>
 			: public eastl::integral_constant<bool, eastl::has_nothrow_copy<T>::value> {};
 
 		template <typename T>
-		struct is_nothrow_constructible<T, T&, eastl::unused>
+		struct is_nothrow_constructible<T, T&>
+			: public eastl::integral_constant<bool, eastl::has_nothrow_copy<T>::value> {};
+
+		template <typename T>
+		struct is_nothrow_constructible<T, T&&>
 			: public eastl::integral_constant<bool, eastl::has_nothrow_copy<T>::value> {};
 
 	#else
-
-		#if defined(EA_COMPILER_NO_NOEXCEPT)
-
-			#define EASTL_TYPE_TRAIT_is_nothrow_constructible_CONFORMANCE 0
-
-			template <typename T, typename... Args>
-			struct is_nothrow_constructible
-				: public eastl::false_type {};
-
-			template <typename T>
-			struct is_nothrow_constructible<T>
-				: public eastl::integral_constant<bool, eastl::has_nothrow_constructor<T>::value> {};
-
-			template <typename T>
-			struct is_nothrow_constructible<T, T>
-				: public eastl::integral_constant<bool, eastl::has_nothrow_copy<T>::value> {};
-
-			template <typename T>
-			struct is_nothrow_constructible<T, const T&>
-				: public eastl::integral_constant<bool, eastl::has_nothrow_copy<T>::value> {};
-
-			template <typename T>
-			struct is_nothrow_constructible<T, T&>
-				: public eastl::integral_constant<bool, eastl::has_nothrow_copy<T>::value> {};
-
-			#if !EASTL_NO_RVALUE_REFERENCES
-				template <typename T>
-				struct is_nothrow_constructible<T, T&&>
-					: public eastl::integral_constant<bool, eastl::has_nothrow_copy<T>::value> {};
-			#endif
-
+		#if defined(EA_COMPILER_GNUC) && (EA_COMPILER_VERSION < 4008)
+			#define EASTL_TYPE_TRAIT_is_nothrow_constructible_CONFORMANCE 0 // GCC up to v4.7's noexcept is broken and fails to generate true for the case of compiler-generated constructors.
 		#else
-
-			#if defined(EA_COMPILER_GNUC) && (EA_COMPILER_VERSION < 4008)
-				#define EASTL_TYPE_TRAIT_is_nothrow_constructible_CONFORMANCE 0 // GCC up to v4.7's noexcept is broken and fails to generate true for the case of compiler-generated constructors.
-			#else
-				#define EASTL_TYPE_TRAIT_is_nothrow_constructible_CONFORMANCE EASTL_TYPE_TRAIT_is_constructible_CONFORMANCE
-			#endif
-		   
-			////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-			// *_noexcept_wrapper implements a workaround for VS2015 preview.  A standards conforming noexcept operator allows variadic template expansion.
-			// There appears to be an issue with VS2015 preview that prevents variadic template expansion into a noexcept operator that is passed directly 
-			// to a template parameter.
-			// 
-			// The fix hoists the noexcept expression into a separate struct and caches the result of the expression.  This result is then passed to integral_constant.
-			//
-			// Example code from Clang libc++
-			// template <class _Tp, class... _Args>
-			// struct __libcpp_is_nothrow_constructible<[>is constructible*/true, /*is reference<]false, _Tp, _Args...>
-			//     : public integral_constant<bool, noexcept(_Tp(declval<_Args>()...))> { };
-			//
-			
-			template <typename T, typename... Args>
-			struct is_nothrow_constructible_helper_noexcept_wrapper
-				{ static const bool value = noexcept(T(eastl::declval<Args>()...)); };
-
-			template <bool, typename T, typename... Args>
-			struct is_nothrow_constructible_helper;
-
-			template <typename T, typename... Args>
-			struct is_nothrow_constructible_helper<true, T, Args...>
-				: public eastl::integral_constant<bool, is_nothrow_constructible_helper_noexcept_wrapper<T, Args...>::value> {};
-
-			template<typename T, typename Arg>
-			struct is_nothrow_constructible_helper<true, T, Arg>
-				: public eastl::integral_constant<bool, noexcept(T(eastl::declval<Arg>()))> {};
-
-			template<typename T>
-			struct is_nothrow_constructible_helper<true, T>
-				: public eastl::integral_constant<bool, noexcept(T())> {};
-
-			template <typename T, typename... Args>
-			struct is_nothrow_constructible_helper<false, T, Args...>
-				: public eastl::false_type {};
-
-			template <typename T, typename... Args>
-			struct is_nothrow_constructible
-				: public eastl::is_nothrow_constructible_helper<eastl::is_constructible<T, Args...>::value, T, Args...> {};
-
-			template <typename T, size_t N>
-			struct is_nothrow_constructible<T[N]>
-				: public eastl::is_nothrow_constructible_helper<eastl::is_constructible<T>::value, T> {};
-
+			#define EASTL_TYPE_TRAIT_is_nothrow_constructible_CONFORMANCE EASTL_TYPE_TRAIT_is_constructible_CONFORMANCE
 		#endif
+	   
+		////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+		// *_noexcept_wrapper implements a workaround for VS2015 preview.  A standards conforming noexcept operator allows variadic template expansion.
+		// There appears to be an issue with VS2015 preview that prevents variadic template expansion into a noexcept operator that is passed directly 
+		// to a template parameter.
+		// 
+		// The fix hoists the noexcept expression into a separate struct and caches the result of the expression.  This result is then passed to integral_constant.
+		//
+		// Example code from Clang libc++
+		// template <class _Tp, class... _Args>
+		// struct __libcpp_is_nothrow_constructible<[>is constructible*/true, /*is reference<]false, _Tp, _Args...>
+		//     : public integral_constant<bool, noexcept(_Tp(declval<_Args>()...))> { };
+		//
+		
+		template <typename T, typename... Args>
+		struct is_nothrow_constructible_helper_noexcept_wrapper
+			{ static const bool value = noexcept(T(eastl::declval<Args>()...)); };
 
+		template <bool, typename T, typename... Args>
+		struct is_nothrow_constructible_helper;
+
+		template <typename T, typename... Args>
+		struct is_nothrow_constructible_helper<true, T, Args...>
+			: public eastl::integral_constant<bool, is_nothrow_constructible_helper_noexcept_wrapper<T, Args...>::value> {};
+
+		template<typename T, typename Arg>
+		struct is_nothrow_constructible_helper<true, T, Arg>
+			: public eastl::integral_constant<bool, noexcept(T(eastl::declval<Arg>()))> {};
+
+		template<typename T>
+		struct is_nothrow_constructible_helper<true, T>
+			: public eastl::integral_constant<bool, noexcept(T())> {};
+
+		template <typename T, typename... Args>
+		struct is_nothrow_constructible_helper<false, T, Args...>
+			: public eastl::false_type {};
+
+		template <typename T, typename... Args>
+		struct is_nothrow_constructible
+			: public eastl::is_nothrow_constructible_helper<eastl::is_constructible<T, Args...>::value, T, Args...> {};
+
+		template <typename T, size_t N>
+		struct is_nothrow_constructible<T[N]>
+			: public eastl::is_nothrow_constructible_helper<eastl::is_constructible<T>::value, T> {};
 	#endif
 
 	#define EASTL_DECLARE_IS_NOTHROW_CONSTRUCTIBLE(T, isNothrowConstructible)                                                    \
@@ -1135,6 +1112,10 @@ namespace eastl
 			template <> struct is_nothrow_constructible<T> : public eastl::integral_constant<bool, isNothrowConstructible>  { }; \
 		}
 
+	#if EASTL_VARIABLE_TEMPLATES_ENABLED
+		template <class T, typename... Args>
+		EA_CONSTEXPR bool is_nothrow_constructible_v = is_nothrow_constructible<T, Args...>::value;
+    #endif
 
 
 	///////////////////////////////////////////////////////////////////////
@@ -1148,6 +1129,11 @@ namespace eastl
 	template <typename T>
 	struct is_default_constructible
 		: public eastl::is_constructible<T> {};
+
+	#if EASTL_VARIABLE_TEMPLATES_ENABLED
+		template <class T>
+		EA_CONSTEXPR bool is_default_constructible_v = is_default_constructible<T>::value;
+    #endif
 
 
 
@@ -1163,7 +1149,10 @@ namespace eastl
 	struct is_copy_constructible
 		: public eastl::is_constructible<T, typename eastl::add_lvalue_reference<typename eastl::add_const<T>::type>::type> {};
 
-
+	#if EASTL_VARIABLE_TEMPLATES_ENABLED
+		template <class T>
+		EA_CONSTEXPR bool is_copy_constructible_v = is_copy_constructible<T>::value;
+    #endif
 
 
 	///////////////////////////////////////////////////////////////////////
@@ -1174,9 +1163,14 @@ namespace eastl
 
 	#define EASTL_TYPE_TRAIT_is_trivially_copy_constructible_CONFORMANCE EASTL_TYPE_TRAIT_is_trivially_constructible_CONFORMANCE
 
-	template <typename T> struct is_trivially_copy_constructible
+	template <typename T> 
+	struct is_trivially_copy_constructible
 		: public eastl::is_trivially_constructible<T, typename eastl::add_lvalue_reference<typename eastl::add_const<T>::type>::type> {};
 
+	#if EASTL_VARIABLE_TEMPLATES_ENABLED
+		template <class T>
+		EA_CONSTEXPR bool is_trivially_copy_constructible_v = is_trivially_copy_constructible<T>::value;
+    #endif
 
 
 	///////////////////////////////////////////////////////////////////////
@@ -1191,6 +1185,10 @@ namespace eastl
 	struct is_nothrow_copy_constructible
 		: public is_nothrow_constructible<T, typename eastl::add_lvalue_reference<typename eastl::add_const<T>::type>::type> {};
 
+	#if EASTL_VARIABLE_TEMPLATES_ENABLED
+		template <class T>
+		EA_CONSTEXPR bool is_nothrow_copy_constructible_v = is_nothrow_copy_constructible<T>::value;
+    #endif
 
 
 	///////////////////////////////////////////////////////////////////////
@@ -1199,20 +1197,16 @@ namespace eastl
 	// is_constructible<T, T&&>::value is true.
 	///////////////////////////////////////////////////////////////////////
 
-	#if EASTL_NO_RVALUE_REFERENCES
-		#define EASTL_TYPE_TRAIT_is_move_constructible_CONFORMANCE 0
+	#define EASTL_TYPE_TRAIT_is_move_constructible_CONFORMANCE EASTL_TYPE_TRAIT_is_constructible_CONFORMANCE
 
-		template <typename T> 
-		struct is_move_constructible
-			: public eastl::is_copy_constructible<T> {};
-	#else
-		#define EASTL_TYPE_TRAIT_is_move_constructible_CONFORMANCE EASTL_TYPE_TRAIT_is_constructible_CONFORMANCE
+	template <typename T>
+	struct is_move_constructible
+		: public eastl::is_constructible<T, typename eastl::add_rvalue_reference<T>::type> {};
 
-		template <typename T>
-		struct is_move_constructible
-			: public eastl::is_constructible<T, typename eastl::add_rvalue_reference<T>::type> {};
-	#endif
-
+	#if EASTL_VARIABLE_TEMPLATES_ENABLED
+		template <class T>
+		EA_CONSTEXPR bool is_move_constructible_v = is_nothrow_copy_constructible<T>::value;
+    #endif
 
 
 	///////////////////////////////////////////////////////////////////////
@@ -1223,24 +1217,21 @@ namespace eastl
 	// array of unknown bound.
 	///////////////////////////////////////////////////////////////////////
 
-	#if EASTL_NO_RVALUE_REFERENCES
-		#define EASTL_TYPE_TRAIT_is_trivially_move_constructible_CONFORMANCE 0
+	#define EASTL_TYPE_TRAIT_is_trivially_move_constructible_CONFORMANCE EASTL_TYPE_TRAIT_is_trivially_constructible_CONFORMANCE
 
-		template <typename T> 
-		struct is_trivially_move_constructible
-			: public eastl::is_trivially_copy_constructible<T> {};
-	#else
-		#define EASTL_TYPE_TRAIT_is_trivially_move_constructible_CONFORMANCE EASTL_TYPE_TRAIT_is_trivially_constructible_CONFORMANCE
-
-		template <typename T> 
-		struct is_trivially_move_constructible
-			: public eastl::is_trivially_constructible<T, typename eastl::add_rvalue_reference<T>::type> {};
-	#endif
+	template <typename T> 
+	struct is_trivially_move_constructible
+		: public eastl::is_trivially_constructible<T, typename eastl::add_rvalue_reference<T>::type> {};
 
 	#define EASTL_DECLARE_IS_TRIVIALLY_MOVE_CONSTRUCTIBLE(T, isTrivallyMoveConstructible)                                                      \
 		namespace eastl{                                                                                                                       \
 			template <> struct is_trivially_move_constructible<T>  : public eastl::integral_constant<bool, isTriviallyMoveConstructible>  { }; \
 		}
+	
+	#if EASTL_VARIABLE_TEMPLATES_ENABLED
+		template <class T>
+		EA_CONSTEXPR bool is_trivially_move_constructible_v = is_trivially_move_constructible<T>::value;
+    #endif
 
 
 
@@ -1350,6 +1341,11 @@ namespace eastl
 			template <> struct is_assignable<T, U> : public eastl::integral_constant<bool, isAssignable>  { }; \
 		}
 
+	#if EASTL_VARIABLE_TEMPLATES_ENABLED
+		template <class T, class U>
+		EA_CONSTEXPR bool is_assignable_v = is_assignable<T, U>::value;
+    #endif
+
 
 
 	///////////////////////////////////////////////////////////////////////
@@ -1445,11 +1441,9 @@ namespace eastl
 		struct is_trivially_assignable<T&, const T&>
 			: public eastl::integral_constant<bool, eastl::is_scalar<T>::value> {};
 
-		#if !EASTL_NO_RVALUE_REFERENCES
-			template <typename T>
-			struct is_trivially_assignable<T&, T&&>
-				: public eastl::integral_constant<bool, eastl::is_scalar<T>::value> {};
-		#endif
+		template <typename T>
+		struct is_trivially_assignable<T&, T&&>
+			: public eastl::integral_constant<bool, eastl::is_scalar<T>::value> {};
 
 	#endif
 
@@ -1534,6 +1528,12 @@ namespace eastl
 		}
 
 
+	#if EASTL_VARIABLE_TEMPLATES_ENABLED
+		template <class T, class U>
+		EA_CONSTEXPR bool is_nothrow_assignable_v = is_nothrow_assignable<T, U>::value;
+    #endif
+
+
 
 	///////////////////////////////////////////////////////////////////////
 	// is_copy_assignable
@@ -1555,6 +1555,10 @@ namespace eastl
 		: public eastl::is_assignable<typename eastl::add_lvalue_reference<T>::type,
 									  typename eastl::add_lvalue_reference<typename eastl::add_const<T>::type>::type> {};
 
+	#if EASTL_VARIABLE_TEMPLATES_ENABLED
+		template <class T>
+		EA_CONSTEXPR bool is_copy_assignable_v = is_copy_assignable<T>::value;
+    #endif
 
 
 	///////////////////////////////////////////////////////////////////////
@@ -1585,6 +1589,11 @@ namespace eastl
 			template <> struct is_trivially_copy_assignable<T> : public eastl::integral_constant<bool, isTriviallyCopyAssignable>  { }; \
 		}
 
+	#if EASTL_VARIABLE_TEMPLATES_ENABLED
+		template <class T>
+		EA_CONSTEXPR bool is_trivially_copy_assignable_v = is_trivially_copy_assignable<T>::value;
+    #endif
+
 	///////////////////////////////////////////////////////////////////////
 	// is_nothrow_copy_assignable
 	//
@@ -1597,6 +1606,10 @@ namespace eastl
 		: public eastl::is_nothrow_assignable<typename eastl::add_lvalue_reference<T>::type,
 											  typename eastl::add_lvalue_reference<typename eastl::add_const<T>::type>::type> {};
 
+	#if EASTL_VARIABLE_TEMPLATES_ENABLED
+		template <class T>
+		EA_CONSTEXPR bool is_nothrow_copy_assignable_v = is_nothrow_copy_assignable<T>::value;
+    #endif
 
 
 	///////////////////////////////////////////////////////////////////////
@@ -1606,19 +1619,12 @@ namespace eastl
 	// (possibly cv -qualified) void, or an array of unknown bound.
 	///////////////////////////////////////////////////////////////////////
 
-	#if EASTL_NO_RVALUE_REFERENCES
-		#define EASTL_TYPE_TRAIT_is_move_assignable_CONFORMANCE 0
+	#define EASTL_TYPE_TRAIT_is_move_assignable_CONFORMANCE EASTL_TYPE_TRAIT_is_assignable_CONFORMANCE
 
-		template <typename T>
-		struct is_move_assignable : public is_copy_assignable<T>{};
-	#else
-		#define EASTL_TYPE_TRAIT_is_move_assignable_CONFORMANCE EASTL_TYPE_TRAIT_is_assignable_CONFORMANCE
-
-		template <typename T>
-		struct is_move_assignable
-			: public eastl::is_assignable<typename eastl::add_lvalue_reference<T>::type,
-										  typename eastl::add_rvalue_reference<T>::type> {};
-	#endif
+	template <typename T>
+	struct is_move_assignable
+		: public eastl::is_assignable<typename eastl::add_lvalue_reference<T>::type,
+									  typename eastl::add_rvalue_reference<T>::type> {};
 
 	#define EASTL_DECLARE_IS_MOVE_ASSIGNABLE(T, isMoveAssignable)                                                                   \
 		namespace eastl{                                                                                                            \
@@ -1627,6 +1633,11 @@ namespace eastl
 			template <> struct is_move_assignable<volatile T>       : public eastl::integral_constant<bool, isMoveAssignable>  { }; \
 			template <> struct is_move_assignable<const volatile T> : public eastl::integral_constant<bool, isMoveAssignable>  { }; \
 		}
+
+	#if EASTL_VARIABLE_TEMPLATES_ENABLED
+		template <class T>
+		EA_CONSTEXPR bool is_move_assignable_v = is_move_assignable<T>::value;
+    #endif
 
 
  
@@ -1659,7 +1670,10 @@ namespace eastl
 		: public eastl::is_nothrow_assignable<typename eastl::add_lvalue_reference<T>::type,
 											  typename eastl::add_rvalue_reference<T>::type> {};
 
-
+	#if EASTL_VARIABLE_TEMPLATES_ENABLED
+		template <class T>
+		EA_CONSTEXPR bool is_nothrow_move_assignable_v = is_nothrow_move_assignable<T>::value;
+	#endif
 
 	///////////////////////////////////////////////////////////////////////
 	// is_destructible
@@ -1781,6 +1795,11 @@ namespace eastl
 			template <> struct is_trivially_destructible<const volatile T> : public eastl::integral_constant<bool, isTriviallyDestructible>{}; \
 		}
 
+	#if EASTL_VARIABLE_TEMPLATES_ENABLED
+		template <class T>
+		EA_CONSTEXPR bool is_trivially_destructible_v = is_trivially_destructible<T>::value;
+    #endif
+
 
 
 
@@ -1800,7 +1819,7 @@ namespace eastl
 		struct is_nothrow_destructible
 			: integral_constant<bool, __is_nothrow_destructible(T)> {};
 
-	#elif defined(EA_COMPILER_NO_NOEXCEPT) || defined(EA_COMPILER_NO_DECLTYPE)
+	#elif defined(EA_COMPILER_NO_NOEXCEPT) 
 		#define EASTL_TYPE_TRAIT_is_nothrow_destructible_CONFORMANCE 0
 
 		template <typename T>
@@ -1857,11 +1876,9 @@ namespace eastl
 		struct is_nothrow_destructible<T&>                  // A reference type cannot throw while being destructed. It's just a reference.
 			: public eastl::true_type {};
 
-		#if !EASTL_NO_RVALUE_REFERENCES
-			template <typename T>
-			struct is_nothrow_destructible<T&&>             // An rvalue reference type cannot throw while being destructed.
-				: public eastl::true_type {};
-		#endif
+		template <typename T>
+		struct is_nothrow_destructible<T&&>                 // An rvalue reference type cannot throw while being destructed.
+			: public eastl::true_type {};
 
 	#endif
 
@@ -1879,7 +1896,6 @@ namespace eastl
 	// is_nothrow_default_constructible
 	//
 	///////////////////////////////////////////////////////////////////////
-
 	#define EASTL_TYPE_TRAIT_is_nothrow_default_constructible_CONFORMANCE EASTL_TYPE_TRAIT_is_nothrow_constructible_CONFORMANCE
 
 	template <typename T>
@@ -1892,22 +1908,13 @@ namespace eastl
 	// is_nothrow_move_constructible
 	//
 	///////////////////////////////////////////////////////////////////////
+	#define EASTL_TYPE_TRAIT_is_nothrow_move_constructible_CONFORMANCE EASTL_TYPE_TRAIT_is_nothrow_constructible_CONFORMANCE
 
-	#if EASTL_NO_RVALUE_REFERENCES
-		#define EASTL_TYPE_TRAIT_is_nothrow_move_constructible_CONFORMANCE 0
+	template <typename T>
+	struct is_nothrow_move_constructible
+	    : public eastl::is_nothrow_constructible<T, typename eastl::add_rvalue_reference<T>::type> {};
 
-		template <typename T>
-		struct is_nothrow_move_constructible
-			: public eastl::is_nothrow_copy_constructible<T> {};
-	#else
-		#define EASTL_TYPE_TRAIT_is_nothrow_move_constructible_CONFORMANCE EASTL_TYPE_TRAIT_is_nothrow_constructible_CONFORMANCE
-
-		template <typename T>
-		struct is_nothrow_move_constructible
-			: public eastl::is_nothrow_constructible<T, typename eastl::add_rvalue_reference<T>::type> {};
-	#endif
-
-	#if EASTL_VARIABLE_TEMPLATES_ENABLED
+    #if EASTL_VARIABLE_TEMPLATES_ENABLED
 		template <class T>
 		EA_CONSTEXPR bool is_nothrow_move_constructible_v = is_nothrow_move_constructible<T>::value;
 	#endif

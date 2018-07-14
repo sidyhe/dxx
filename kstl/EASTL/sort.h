@@ -1322,7 +1322,7 @@ namespace eastl
 				// If this is the last merge, just do it.
 				if((stack_curr == 2) && ((run_stack[0].length + run_stack[1].length) == size))
 				{
-					tim_sort_merge(first, run_stack, stack_curr, pBuffer, compare);
+					tim_sort_merge<RandomAccessIterator, T, StrictWeakOrdering>(first, run_stack, stack_curr, pBuffer, compare);
 					run_stack[0].length += run_stack[1].length;
 					stack_curr--;
 
@@ -1335,7 +1335,7 @@ namespace eastl
 				// Check if the invariant is off for a run_stack of 2 elements.
 				else if((stack_curr == 2) && (run_stack[0].length <= run_stack[1].length))
 				{
-					tim_sort_merge(first, run_stack, stack_curr, pBuffer, compare);
+					tim_sort_merge<RandomAccessIterator, T, StrictWeakOrdering>(first, run_stack, stack_curr, pBuffer, compare);
 					run_stack[0].length += run_stack[1].length;
 					stack_curr--;
 
@@ -1356,7 +1356,7 @@ namespace eastl
 				{
 					if(A < C)
 					{
-						tim_sort_merge(first, run_stack, stack_curr - 1, pBuffer, compare);
+						tim_sort_merge<RandomAccessIterator, T, StrictWeakOrdering>(first, run_stack, stack_curr - 1, pBuffer, compare);
 
 						stack_curr--;
 						run_stack[stack_curr - 2].length += run_stack[stack_curr - 1].length;   // Merge A and B.
@@ -1370,7 +1370,7 @@ namespace eastl
 					}
 					else
 					{
-						tim_sort_merge(first, run_stack, stack_curr, pBuffer, compare);                  // Merge B and C.
+						tim_sort_merge<RandomAccessIterator, T, StrictWeakOrdering>(first, run_stack, stack_curr, pBuffer, compare);                  // Merge B and C.
 
 						stack_curr--;
 						run_stack[stack_curr - 1].length += run_stack[stack_curr].length;
@@ -1383,7 +1383,7 @@ namespace eastl
 				}
 				else if(B <= C) // Check second invariant
 				{
-					tim_sort_merge(first, run_stack, stack_curr, pBuffer, compare);
+					tim_sort_merge<RandomAccessIterator, T, StrictWeakOrdering>(first, run_stack, stack_curr, pBuffer, compare);
 
 					stack_curr--;
 					run_stack[stack_curr - 1].length += run_stack[stack_curr].length;       // Merge B and C.
@@ -1409,7 +1409,7 @@ namespace eastl
 		bool tim_sort_add_run(tim_sort_run* run_stack, RandomAccessIterator first, T* pBuffer, const intptr_t size, const intptr_t minrun, 
 							  intptr_t& len, intptr_t& run, intptr_t& curr, intptr_t& stack_curr, StrictWeakOrdering compare)
 		{
-			len = tim_sort_count_run(first, curr, size, compare); // This will count the length of the run and reverse the run if it is backwards.
+			len = tim_sort_count_run<RandomAccessIterator, StrictWeakOrdering>(first, curr, size, compare); // This will count the length of the run and reverse the run if it is backwards.
 			run = minrun;
 
 			if(run < minrun)            // Always make runs be of minrun length (we'll sort the additional data as needed below)
@@ -1420,7 +1420,7 @@ namespace eastl
 
 			if(run > len)               // If there is any additional data we want to sort to bring up the run length to minrun.
 			{
-				insertion_sort_already_started(first + curr, first + curr + run, first + curr + len, compare);
+				insertion_sort_already_started<RandomAccessIterator, StrictWeakOrdering>(first + curr, first + curr + run, first + curr + len, compare);
 				len = run;
 			}
 
@@ -1440,7 +1440,7 @@ namespace eastl
 			{
 				while(stack_curr > 1) // If there is any more than one run... (else all the data is sorted)
 				{
-					tim_sort_merge(first, run_stack, stack_curr, pBuffer, compare);
+					tim_sort_merge<RandomAccessIterator, T, StrictWeakOrdering>(first, run_stack, stack_curr, pBuffer, compare);
 
 					run_stack[stack_curr - 2].length += run_stack[stack_curr - 1].length;
 					stack_curr--;
@@ -1517,20 +1517,20 @@ namespace eastl
 				memset(run_stack, 0, sizeof(run_stack));
 			#endif
 
-			if(tim_sort_add_run(run_stack, first, pBuffer, size, minrun, len, run, curr, stack_curr, compare))
+			if(tim_sort_add_run<RandomAccessIterator, T, StrictWeakOrdering>(run_stack, first, pBuffer, size, minrun, len, run, curr, stack_curr, compare))
 				return;
-			if(tim_sort_add_run(run_stack, first, pBuffer, size, minrun, len, run, curr, stack_curr, compare))
+			if(tim_sort_add_run<RandomAccessIterator, T, StrictWeakOrdering>(run_stack, first, pBuffer, size, minrun, len, run, curr, stack_curr, compare))
 				return;
-			if(tim_sort_add_run(run_stack, first, pBuffer, size, minrun, len, run, curr, stack_curr, compare))
+			if(tim_sort_add_run<RandomAccessIterator, T, StrictWeakOrdering>(run_stack, first, pBuffer, size, minrun, len, run, curr, stack_curr, compare))
 				return;
 
 			for(;;)
 			{
 				if(timsort_check_invariant(run_stack, stack_curr))
-					stack_curr = tim_sort_collapse(first, run_stack, stack_curr, pBuffer, size, compare);
+					stack_curr = tim_sort_collapse<RandomAccessIterator, T, StrictWeakOrdering>(first, run_stack, stack_curr, pBuffer, size, compare);
 				else
 				{
-					if(tim_sort_add_run(run_stack, first, pBuffer, size, minrun, len, run, curr, stack_curr, compare))
+					if(tim_sort_add_run<RandomAccessIterator, T, StrictWeakOrdering>(run_stack, first, pBuffer, size, minrun, len, run, curr, stack_curr, compare))
 						break;
 				}
 			}
@@ -1600,110 +1600,115 @@ namespace eastl
 				{ return x.mKey; }
 		};
 
-		// uint8_t version.
-		template <typename RandomAccessIterator, typename ExtractKey>
-		void radix_sort_impl(RandomAccessIterator first, RandomAccessIterator last, RandomAccessIterator buffer, ExtractKey extractKey, uint8_t)
+		// The radix_sort implementation uses two optimizations that are not part of a typical radix sort implementation.
+		// 1. Computing a histogram (i.e. finding the number of elements per bucket) for the next pass is done in parallel with the loop that "scatters"
+		//    elements in the current pass.  The advantage is that it avoids the memory traffic / cache pressure of reading keys in a separate operation.
+		//    Note: It would also be possible to compute all histograms in a single pass.  However, that would increase the amount of stack space used and
+		//    also increase cache pressure slightly.  However, it could still be faster under some situations.
+		// 2. If all elements are mapped to a single bucket, then there is no need to perform a scatter operation.  Instead the elements are left in place
+		//    and only copied if they need to be copied to the final output buffer.
+		template <typename RandomAccessIterator, typename ExtractKey, int DigitBits, typename IntegerType>
+		void radix_sort_impl(RandomAccessIterator first,
+			RandomAccessIterator last,
+			RandomAccessIterator buffer,
+			ExtractKey extractKey,
+			IntegerType)
 		{
-			uint32_t EA_PREFIX_ALIGN(EASTL_PLATFORM_PREFERRED_ALIGNMENT) bucketSize[256];       // The alignment of this variable isn't required; it merely 
-			uint32_t EA_PREFIX_ALIGN(EASTL_PLATFORM_PREFERRED_ALIGNMENT) bucketPosition[256];   // allows the code below to be faster on some platforms.
+			RandomAccessIterator srcFirst = first;
+			constexpr size_t numBuckets = 1 << DigitBits;
+			constexpr IntegerType bucketMask = numBuckets - 1;
+
+			// The alignment of this variable isn't required; it merely allows the code below to be faster on some platforms.
+			uint32_t EA_PREFIX_ALIGN(EASTL_PLATFORM_PREFERRED_ALIGNMENT) bucketSize[numBuckets];
+			uint32_t EA_PREFIX_ALIGN(EASTL_PLATFORM_PREFERRED_ALIGNMENT) bucketPosition[numBuckets];
+
 			RandomAccessIterator temp;
 			uint32_t i;
 
-			memset(bucketSize, 0, sizeof(bucketSize));
-
-			for(temp = first; temp != last; ++temp)
-				++bucketSize[extractKey(*temp)];
-
-			for(bucketPosition[0] = 0, i = 0; i < 255; i++)
-				bucketPosition[i + 1] = bucketPosition[i] + bucketSize[i];
-
-			for(temp = first; temp != last; ++temp)
+			bool doSeparateHistogramCalculation = true;
+			uint32_t j;
+			for (j = 0; j < (8 * sizeof(IntegerType)); j += DigitBits)
 			{
-				const size_t radixByte = extractKey(*temp);
-				buffer[bucketPosition[radixByte]++] = *temp;
-			}
-		}
-
-		// uint16_t version.
-		template <typename RandomAccessIterator, typename ExtractKey>
-		void radix_sort_impl(RandomAccessIterator first, RandomAccessIterator last, RandomAccessIterator buffer, ExtractKey extractKey, uint16_t)
-		{
-			uint32_t EA_PREFIX_ALIGN(EASTL_PLATFORM_PREFERRED_ALIGNMENT) bucketSize[256];       // The alignment of this variable isn't required; it merely 
-			uint32_t EA_PREFIX_ALIGN(EASTL_PLATFORM_PREFERRED_ALIGNMENT) bucketPosition[256];   // allows the code below to be faster on some platforms.
-			RandomAccessIterator temp;
-			uint32_t i;
-
-			// Process byte 0 (least significant byte).
-			memset(bucketSize, 0, sizeof(bucketSize));
-
-			for(temp = first; temp != last; ++temp)
-				++bucketSize[extractKey(*temp) & 0xff];
-
-			for(bucketPosition[0] = 0, i = 0; i < 255; i++)
-				bucketPosition[i + 1] = bucketPosition[i] + bucketSize[i];
-
-			for(temp = first; temp != last; ++temp)
-			{
-				const size_t radixByte = extractKey(*temp) & 0xff;
-				buffer[bucketPosition[radixByte]++] = *temp;
-			}
-
-
-			// Process byte 1 (second least significant byte).
-			memset(bucketSize, 0, sizeof(bucketSize));
-
-			for(temp = buffer, last = buffer + (last - first); temp != last; ++temp)
-				++bucketSize[extractKey(*temp) >> 8];
-
-			for(bucketPosition[0] = 0, i = 0; i < 255; i++)
-				bucketPosition[i + 1] = bucketPosition[i] + bucketSize[i];
-			
-			for(temp = buffer; temp != last; ++temp)
-			{
-				const size_t radixByte = extractKey(*temp) >> 8;
-				first[bucketPosition[radixByte]++] = *temp;
-			}
-		}
-
-
-		// Generic version.
-		template <typename RandomAccessIterator, typename ExtractKey, typename IntegerType>
-		void radix_sort_impl(RandomAccessIterator first, RandomAccessIterator last, RandomAccessIterator buffer, ExtractKey extractKey, IntegerType)
-		{
-			uint32_t EA_PREFIX_ALIGN(EASTL_PLATFORM_PREFERRED_ALIGNMENT) bucketSize[256];       // The alignment of this variable isn't required; it merely 
-			uint32_t EA_PREFIX_ALIGN(EASTL_PLATFORM_PREFERRED_ALIGNMENT) bucketPosition[256];   // allows the code below to be faster on some platforms.
-			RandomAccessIterator temp;
-			uint32_t i;
-
-			for(uint32_t j = 0; j < (8 * sizeof(IntegerType)); j += 8)
-			{
-				memset(bucketSize, 0, sizeof(bucketSize));
-
-				for(temp = first; temp != last; ++temp)
-					++bucketSize[(extractKey(*temp) >> j) & 0xff];
-
-				bucketPosition[0] = 0;
-				for(i = 0; i < 255; i++)
-					bucketPosition[i + 1] = bucketPosition[i] + bucketSize[i];
-
-				for(temp = first; temp != last; ++temp)
+				if (doSeparateHistogramCalculation)
 				{
-					const size_t radixByte = ((extractKey(*temp) >> j) & 0xff);
-					buffer[bucketPosition[radixByte]++] = *temp;
+					memset(bucketSize, 0, sizeof(bucketSize));
+					// Calculate histogram for the first scatter operation
+					for (temp = srcFirst; temp != last; ++temp)
+						++bucketSize[(extractKey(*temp) >> j) & bucketMask];
 				}
 
-				last   = buffer + (last - first);
-				temp   = first;
-				first  = buffer;
-				buffer = temp; 
+				// If a single bucket contains all of the elements, then don't bother redistributing all elements to the
+				// same bucket.
+				if (bucketSize[((extractKey(*srcFirst) >> j) & bucketMask)] == uint32_t(last - srcFirst))
+				{
+					// Set flag to ensure histogram is computed for next digit position.
+					doSeparateHistogramCalculation = true;
+				}
+				else
+				{
+					// The histogram is either not needed or it will be calculated in parallel with the scatter operation below for better cache efficiency.
+					doSeparateHistogramCalculation = false;
+
+					// If this is the last digit position, then don't calculate a histogram
+					if (j == (8 * sizeof(IntegerType) - DigitBits))
+					{
+						bucketPosition[0] = 0;
+						for (i = 0; i < numBuckets - 1; i++)
+						{
+							bucketPosition[i + 1] = bucketPosition[i] + bucketSize[i];
+						}
+
+						for (temp = srcFirst; temp != last; ++temp)
+						{
+							IntegerType key = extractKey(*temp);
+							const size_t digit = (key >> j) & bucketMask;
+							buffer[bucketPosition[digit]++] = *temp;
+						}
+					}
+					// Compute the histogram while performing the scatter operation
+					else
+					{
+						bucketPosition[0] = 0;
+						for (i = 0; i < numBuckets - 1; i++)
+						{
+							bucketPosition[i + 1] = bucketPosition[i] + bucketSize[i];
+							bucketSize[i] = 0;	// Clear the bucket for the next pass
+						}
+
+						uint32_t jNext = j + DigitBits;
+						for (temp = srcFirst; temp != last; ++temp)
+						{
+							IntegerType key = extractKey(*temp);
+							const size_t digit = (key >> j) & bucketMask;
+							buffer[bucketPosition[digit]++] = *temp;
+
+							// Update histogram for the next scatter operation
+							++bucketSize[(extractKey(*temp) >> jNext) & bucketMask];
+						}
+					}
+
+					last = buffer + (last - srcFirst);
+					temp = srcFirst;
+					srcFirst = buffer;
+					buffer = temp;
+				}
+			}
+
+			if (srcFirst != first)
+			{
+				// Copy values back into the expected buffer
+				for (temp = srcFirst; temp != last; ++temp)
+					*buffer++ = *temp;
 			}
 		}
 	} // namespace Internal
 
-	template <typename RandomAccessIterator, typename ExtractKey>
+	template <typename RandomAccessIterator, typename ExtractKey, int DigitBits = 8>
 	void radix_sort(RandomAccessIterator first, RandomAccessIterator last, RandomAccessIterator buffer)
 	{
-		eastl::Internal::radix_sort_impl<RandomAccessIterator>(first, last, buffer, ExtractKey(), typename ExtractKey::radix_type());
+		static_assert(DigitBits > 0, "DigitBits must be > 0");
+		static_assert(DigitBits <= (sizeof(typename ExtractKey::radix_type) * 8), "DigitBits must be <= the size of the key (in bits)");
+		eastl::Internal::radix_sort_impl<RandomAccessIterator, ExtractKey, DigitBits>(first, last, buffer, ExtractKey(), typename ExtractKey::radix_type());
 	}
 
 

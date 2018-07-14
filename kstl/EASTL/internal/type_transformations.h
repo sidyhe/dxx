@@ -84,6 +84,7 @@ namespace eastl
 	template <typename T> struct add_volatile
 		{ typedef typename eastl::add_volatile_helper<T>::type type; };
 
+	template <class T> using add_volatile_t = typename add_volatile<T>::type;
 
 
 	///////////////////////////////////////////////////////////////////////
@@ -103,9 +104,10 @@ namespace eastl
 		typedef typename add_const<typename add_volatile<T>::type>::type type;
 	};
 
+	template <class T> using add_cv_t = typename add_cv<T>::type;
 
 
-	///////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////
 	// make_signed
 	//
 	// Used to convert an integral type to its signed equivalent, if not already.
@@ -261,6 +263,10 @@ namespace eastl
 	template<typename T> struct remove_pointer<T* volatile>       { typedef T type; };
 	template<typename T> struct remove_pointer<T* const volatile> { typedef T type; };
 
+	#if EASTL_VARIABLE_TEMPLATES_ENABLED
+		template <class T>
+		using remove_pointer_t = typename remove_pointer<T>::type;
+    #endif
 
 
 	///////////////////////////////////////////////////////////////////////
@@ -276,6 +282,11 @@ namespace eastl
 
 	template<class T>
 	struct add_pointer { typedef typename eastl::remove_reference<T>::type* type; };
+
+	#if EASTL_VARIABLE_TEMPLATES_ENABLED
+		template <class T>
+		using add_pointer_t = typename add_pointer<T>::type;
+    #endif
 
 
 
@@ -295,6 +306,10 @@ namespace eastl
 	template<class T>           struct remove_extent<T[]>  { typedef T type; };
 	template<class T, size_t N> struct remove_extent<T[N]> { typedef T type; };
 
+	#if !defined(EA_COMPILER_NO_TEMPLATE_ALIASES)
+		template <typename T>
+		using remove_extent_t = typename remove_extent<T>::type;
+	#endif
 
 
 	///////////////////////////////////////////////////////////////////////
@@ -312,6 +327,11 @@ namespace eastl
 	template<typename T>           struct remove_all_extents       { typedef T type; };
 	template<typename T, size_t N> struct remove_all_extents<T[N]> { typedef typename eastl::remove_all_extents<T>::type type; };
 	template<typename T>           struct remove_all_extents<T[]>  { typedef typename eastl::remove_all_extents<T>::type type; };
+
+	#if !defined(EA_COMPILER_NO_TEMPLATE_ALIASES)
+		template <typename T>
+		using remove_all_extents_t = typename remove_all_extents<T>::type;
+	#endif
 
 
 
@@ -475,9 +495,9 @@ namespace eastl
 		#if defined(EA_COMPILER_NO_TEMPLATE_ALIASES)
 			// To do: define macro.
 		#else
-			template <size_t minSize, typename Type0, typename ...TypeN>
-			using aligned_union_t = typename aligned_union<minSize, Type0, TypeN...>::type;
-		#endif
+			template <size_t minSize, typename... TypeN>
+			using aligned_union_t = typename aligned_union<minSize, TypeN...>::type;
+        #endif
 
 	#endif
 

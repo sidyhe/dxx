@@ -13,6 +13,7 @@
 #include <EASTL/internal/tuple_fwd_decls.h>
 
 EA_DISABLE_VC_WARNING(4623) // warning C4623: default constructor was implicitly defined as deleted
+EA_DISABLE_VC_WARNING(4625) // warning C4625: copy constructor was implicitly defined as deleted
 EA_DISABLE_VC_WARNING(4510) // warning C4510: default constructor could not be generated
 
 #if EASTL_TUPLE_ENABLED
@@ -23,47 +24,27 @@ namespace eastl
 // http://mitchnull.blogspot.ca/2012/06/c11-tuple-implementation-details-part-1.html
 
 // TupleTypes helper
-template <typename... Ts>
-struct TupleTypes
-{
-};
+template <typename... Ts> struct TupleTypes {};
 
 // tuple_size helper
-template <typename T>
-class tuple_size
-{
-};
+template <typename T> class tuple_size {};
+template <typename T> class tuple_size<const T>          : public tuple_size<T> {};
+template <typename T> class tuple_size<volatile T>       : public tuple_size<T> {};
+template <typename T> class tuple_size<const volatile T> : public tuple_size<T> {};
 
-template <typename T>
-class tuple_size<const T> : public tuple_size<T>
-{
-};
+template <typename... Ts> class tuple_size<TupleTypes<Ts...>> : public integral_constant<size_t, sizeof...(Ts)> {};
+template <typename... Ts> class tuple_size<tuple<Ts...>>      : public integral_constant<size_t, sizeof...(Ts)> {};
 
-template <typename T>
-class tuple_size<volatile T> : public tuple_size<T>
-{
-};
-
-template <typename T>
-class tuple_size<const volatile T> : public tuple_size<T>
-{
-};
-
-template <typename... Ts>
-class tuple_size<TupleTypes<Ts...>> : public integral_constant<size_t, sizeof...(Ts)>
-{
-};
-
-template <typename... Ts>
-class tuple_size<tuple<Ts...>> : public integral_constant<size_t, sizeof...(Ts)>
-{
-};
+#if EASTL_VARIABLE_TEMPLATES_ENABLED
+	template <class T>
+	EA_CONSTEXPR size_t tuple_size_v = tuple_size<T>::value;
+#endif
 
 namespace Internal
 {
-template <typename TupleIndices, typename... Ts>
-struct TupleImpl;
-}
+	template <typename TupleIndices, typename... Ts>
+	struct TupleImpl;
+} // namespace Internal
 
 template <typename Indices, typename... Ts>
 class tuple_size<Internal::TupleImpl<Indices, Ts...>> : public integral_constant<size_t, sizeof...(Ts)>
@@ -190,15 +171,7 @@ namespace Internal
 {
 
 // TupleLeaf
-// TODO: we should handle final classes when is_final type trait is available
-// Due to a bug in the VS2013 compiler pre Update 3 which causes an Internal Compiler Error when expanding the TupleImpl
-// parameter pack together with the defaulted is_empty argument here, we disable the empty base class optimization for
-// older versions of VS2013
-#if !defined(_MSC_FULL_VER) || (_MSC_FULL_VER >= 180030723)
 template <size_t I, typename ValueType, bool IsEmpty = is_empty<ValueType>::value>
-#else
-template <size_t I, typename ValueType, bool IsEmpty = false>
-#endif
 class TupleLeaf;
 
 template <size_t I, typename ValueType, bool IsEmpty>
@@ -212,13 +185,8 @@ class TupleLeaf
 {
 public:
 	TupleLeaf() : mValue() {}
-// Work around a compiler bug in VS2013 that causes compiler errors in certain situations when explicitly defaulting
-// copy constructor
-#if !defined(_MSC_VER) || (_MSC_VER > 1800)
 	TupleLeaf(const TupleLeaf&) = default;
-#else
-	TupleLeaf(const TupleLeaf& x) : mValue(x.mValue) {}
-#endif
+	TupleLeaf& operator=(const TupleLeaf&) = delete;
 
 	// We shouldn't need this explicit constructor as it should be handled by the template below but OSX clang
 	// is_constructible type trait incorrectly gives false for is_constructible<T&&, T&&>::value
@@ -253,27 +221,24 @@ public:
 	const ValueType& getInternal() const { return mValue; }
 
 private:
-	TupleLeaf& operator=(const TupleLeaf&) = delete;
-
-	ValueType mValue;
+	ValueType mValue;  
 };
 
-// Specialize for when ValueType is a reference as VS2013 doesn't do the right thing with the default constructor
+// Specialize for when ValueType is a reference 
 template <size_t I, typename ValueType, bool IsEmpty>
 class TupleLeaf<I, ValueType&, IsEmpty>
 {
 public:
-// Work around a compiler bug in VS2013 that causes compiler errors in certain situations when explicitly defaulting
-// copy constructor
-#if !defined(_MSC_VER) || (_MSC_VER > 1800)
 	TupleLeaf(const TupleLeaf&) = default;
-#else
-	TupleLeaf(const TupleLeaf& x) : mValue(x.mValue) {}
-#endif
+	TupleLeaf& operator=(const TupleLeaf&) = delete;
 
 	template <typename T, typename = typename enable_if<is_constructible<ValueType, T&&>::value>::type>
 	explicit TupleLeaf(T&& t)
 		: mValue(forward<T>(t))
+	{
+	}
+
+	explicit TupleLeaf(ValueType& t) : mValue(t)
 	{
 	}
 
@@ -300,8 +265,6 @@ public:
 	const ValueType& getInternal() const { return mValue; }
 
 private:
-	TupleLeaf& operator=(const TupleLeaf&) = delete;
-
 	ValueType& mValue;
 };
 
@@ -385,7 +348,7 @@ template <size_t I, typename Indices, typename... Ts>
 tuple_element_t<I, TupleImpl<Indices, Ts...>>& get(TupleImpl<Indices, Ts...>& t);
 
 template <size_t I, typename Indices, typename... Ts>
-const tuple_element_t<I, TupleImpl<Indices, Ts...>>& get(const TupleImpl<Indices, Ts...>& t);
+const_tuple_element_t<I, TupleImpl<Indices, Ts...>>& get(const TupleImpl<Indices, Ts...>& t);
 
 template <size_t I, typename Indices, typename... Ts>
 tuple_element_t<I, TupleImpl<Indices, Ts...>>&& get(TupleImpl<Indices, Ts...>&& t);
@@ -437,42 +400,42 @@ struct TupleImpl<integer_sequence<size_t, Indices...>, Ts...> : public TupleLeaf
 };
 
 template <size_t I, typename Indices, typename... Ts>
-tuple_element_t<I, TupleImpl<Indices, Ts...>>& get(TupleImpl<Indices, Ts...>& t)
+inline tuple_element_t<I, TupleImpl<Indices, Ts...>>& get(TupleImpl<Indices, Ts...>& t)
 {
 	typedef tuple_element_t<I, TupleImpl<Indices, Ts...>> Type;
 	return static_cast<Internal::TupleLeaf<I, Type>&>(t).getInternal();
 }
 
 template <size_t I, typename Indices, typename... Ts>
-const tuple_element_t<I, TupleImpl<Indices, Ts...>>& get(const TupleImpl<Indices, Ts...>& t)
+inline const_tuple_element_t<I, TupleImpl<Indices, Ts...>>& get(const TupleImpl<Indices, Ts...>& t)
 {
 	typedef tuple_element_t<I, TupleImpl<Indices, Ts...>> Type;
 	return static_cast<const Internal::TupleLeaf<I, Type>&>(t).getInternal();
 }
 
 template <size_t I, typename Indices, typename... Ts>
-tuple_element_t<I, TupleImpl<Indices, Ts...>>&& get(TupleImpl<Indices, Ts...>&& t)
+inline tuple_element_t<I, TupleImpl<Indices, Ts...>>&& get(TupleImpl<Indices, Ts...>&& t)
 {
 	typedef tuple_element_t<I, TupleImpl<Indices, Ts...>> Type;
 	return static_cast<Type&&>(static_cast<Internal::TupleLeaf<I, Type>&>(t).getInternal());
 }
 
 template <typename T, typename Indices, typename... Ts>
-T& get(TupleImpl<Indices, Ts...>& t)
+inline T& get(TupleImpl<Indices, Ts...>& t)
 {
 	typedef tuple_index<T, TupleImpl<Indices, Ts...>> Index;
 	return static_cast<Internal::TupleLeaf<Index::index, T>&>(t).getInternal();
 }
 
 template <typename T, typename Indices, typename... Ts>
-const T& get(const TupleImpl<Indices, Ts...>& t)
+inline const T& get(const TupleImpl<Indices, Ts...>& t)
 {
 	typedef tuple_index<T, TupleImpl<Indices, Ts...>> Index;
 	return static_cast<const Internal::TupleLeaf<Index::index, T>&>(t).getInternal();
 }
 
 template <typename T, typename Indices, typename... Ts>
-T&& get(TupleImpl<Indices, Ts...>&& t)
+inline T&& get(TupleImpl<Indices, Ts...>&& t)
 {
 	typedef tuple_index<T, TupleImpl<Indices, Ts...>> Index;
 	return static_cast<T&&>(static_cast<Internal::TupleLeaf<Index::index, T>&>(t).getInternal());
@@ -532,17 +495,20 @@ struct TupleConvertibleImpl<true, TupleTypes<>, TupleTypes<>> : public true_type
 {
 };
 
-template <typename From, typename To, bool = TupleLike<typename remove_reference<From>::type>::value,
+template <typename From,
+		  typename To,
+		  bool = TupleLike<typename remove_reference<From>::type>::value,
 		  bool = TupleLike<typename remove_reference<To>::type>::value>
 struct TupleConvertible : public false_type
 {
 };
 
 template <typename From, typename To>
-struct TupleConvertible<From, To, true, true> : public TupleConvertibleImpl<
-													tuple_size<typename remove_reference<From>::type>::value ==
-														tuple_size<typename remove_reference<To>::type>::value,
-													MakeTupleTypes_t<From>, MakeTupleTypes_t<To>>
+struct TupleConvertible<From, To, true, true>
+	: public TupleConvertibleImpl<tuple_size<typename remove_reference<From>::type>::value ==
+		                              tuple_size<typename remove_reference<To>::type>::value,
+		                          MakeTupleTypes_t<From>,
+		                          MakeTupleTypes_t<To>>
 {
 };
 
@@ -554,12 +520,9 @@ struct TupleAssignableImpl : public false_type
 };
 
 template <typename TargetFirst, typename... TargetRest, typename FromFirst, typename... FromRest>
-struct TupleAssignableImpl<
-	true, TupleTypes<TargetFirst, TargetRest...>,
-	TupleTypes<FromFirst, FromRest...>> : public integral_constant<bool, is_assignable<TargetFirst, FromFirst>::value&&
-																			 TupleAssignableImpl<
-																				 true, TupleTypes<TargetRest...>,
-																				 TupleTypes<FromRest...>>::value>
+struct TupleAssignableImpl<true, TupleTypes<TargetFirst, TargetRest...>, TupleTypes<FromFirst, FromRest...>>
+	: public bool_constant<is_assignable<TargetFirst, FromFirst>::value &&
+		                   TupleAssignableImpl<true, TupleTypes<TargetRest...>, TupleTypes<FromRest...>>::value>
 {
 };
 
@@ -568,17 +531,19 @@ struct TupleAssignableImpl<true, TupleTypes<>, TupleTypes<>> : public true_type
 {
 };
 
-template <typename Target, typename From, bool = TupleLike<typename remove_reference<Target>::type>::value,
+template <typename Target,
+		  typename From,
+		  bool = TupleLike<typename remove_reference<Target>::type>::value,
 		  bool = TupleLike<typename remove_reference<From>::type>::value>
 struct TupleAssignable : public false_type
 {
 };
 
 template <typename Target, typename From>
-struct TupleAssignable<Target, From, true, true> : public TupleAssignableImpl<
-													   tuple_size<typename remove_reference<Target>::type>::value ==
-														   tuple_size<typename remove_reference<From>::type>::value,
-													   MakeTupleTypes_t<Target>, MakeTupleTypes_t<From>>
+struct TupleAssignable<Target, From, true, true>
+	: public TupleAssignableImpl<tuple_size<typename remove_reference<Target>::type>::value == tuple_size<typename remove_reference<From>::type>::value,
+		                         MakeTupleTypes_t<Target>,
+		                         MakeTupleTypes_t<From>>
 {
 };
 
@@ -599,7 +564,7 @@ template <>
 struct TupleEqual<0>
 {
 	template <typename Tuple1, typename Tuple2>
-	bool operator()(const Tuple1& t1, const Tuple2& t2)
+	bool operator()(const Tuple1&, const Tuple2&)
 	{
 		return true;
 	}
@@ -622,7 +587,7 @@ template <>
 struct TupleLess<0>
 {
 	template <typename Tuple1, typename Tuple2>
-	bool operator()(const Tuple1& t1, const Tuple2& t2)
+	bool operator()(const Tuple1&, const Tuple2&)
 	{
 		return false;
 	}
@@ -646,6 +611,7 @@ using MakeTupleReturn_t = typename MakeTupleReturnImpl<typename decay<T>::type>:
 struct ignore_t
 {
 	ignore_t() {}
+
 	template <typename T>
 	const ignore_t& operator=(const T&) const
 	{
@@ -765,7 +731,7 @@ private:
 	friend tuple_element_t<I, tuple<Ts_...>>& get(tuple<Ts_...>& t);
 
 	template <size_t I, typename... Ts_>
-	friend const tuple_element_t<I, tuple<Ts_...>>& get(const tuple<Ts_...>& t);
+	friend const_tuple_element_t<I, tuple<Ts_...>>& get(const tuple<Ts_...>& t);
 
 	template <size_t I, typename... Ts_>
 	friend tuple_element_t<I, tuple<Ts_...>>&& get(tuple<Ts_...>&& t);
@@ -784,7 +750,7 @@ template <>
 class tuple<>
 {
 public:
-	void swap(tuple& t) {}
+	void swap(tuple&) {}
 };
 
 template <size_t I, typename... Ts>
@@ -794,7 +760,7 @@ inline tuple_element_t<I, tuple<Ts...>>& get(tuple<Ts...>& t)
 }
 
 template <size_t I, typename... Ts>
-inline const tuple_element_t<I, tuple<Ts...>>& get(const tuple<Ts...>& t)
+inline const_tuple_element_t<I, tuple<Ts...>>& get(const tuple<Ts...>& t)
 {
 	return get<I>(t.mImpl);
 }
@@ -876,7 +842,7 @@ inline EA_CONSTEXPR tuple<Internal::MakeTupleReturn_t<Ts>...> make_tuple(Ts&&...
 template <typename... Ts>
 inline EA_CONSTEXPR tuple<Ts&&...> forward_as_tuple(Ts&&... ts) EA_NOEXCEPT
 {
-	return tuple < Ts && ... > (forward<Ts&&>(ts)...);
+	return tuple<Ts&&...>(forward<Ts&&>(ts)...);
 }
 
 // Specialize ignore_t is_assignable type trait due to yet another VS2013 type traits bug
@@ -899,9 +865,34 @@ inline typename Internal::TupleCat<Tuples...>::ResultType tuple_cat(Tuples&&... 
 	return Internal::TupleCat<Tuples...>::DoCat(forward<Tuples>(ts)...);
 }
 
+
+// apply
+//
+// Invoke a callable object using a tuple to supply the arguments. 
+//
+// http://en.cppreference.com/w/cpp/utility/apply
+//
+namespace detail
+{
+	template <class F, class Tuple, size_t... I>
+	EA_CONSTEXPR decltype(auto) apply_impl(F&& f, Tuple&& t, index_sequence<I...>)
+	{
+		return invoke(forward<F>(f), get<I>(forward<Tuple>(t))...);
+	}
+} // namespace detail
+
+template <class F, class Tuple>
+EA_CONSTEXPR decltype(auto) apply(F&& f, Tuple&& t)
+{
+	return detail::apply_impl(forward<F>(f), forward<Tuple>(t),
+		                      make_index_sequence<tuple_size_v<remove_reference_t<Tuple>>>{});
+}
+
+
 }  // namespace eastl
 
 #endif  // EASTL_TUPLE_ENABLED
+EA_RESTORE_VC_WARNING()
 EA_RESTORE_VC_WARNING()
 EA_RESTORE_VC_WARNING()
 #endif  // EASTL_TUPLE_H

@@ -34,7 +34,7 @@
 	EA_DISABLE_ALL_VC_WARNINGS()
 	#undef NOMINMAX
 	#define NOMINMAX
-	#include <ntddk.h>
+	#include <Windows.h>
 	#ifdef min
 		#undef min
 	#endif
@@ -567,29 +567,23 @@ namespace chrono
 		inline uint64_t GetTicks()
 		{
 		#if defined EA_PLATFORM_MICROSOFT
-			LARGE_INTEGER _counter;
-			LARGE_INTEGER _frequency;
-
-			_counter = KeQueryPerformanceCounter(&_frequency);
-
-			auto queryFrequency = [&_frequency]
+			auto queryFrequency = []
 			{
-				// LARGE_INTEGER frequency;
-				// QueryPerformanceFrequency(&frequency);
-				return double(1000000000.0L / _frequency.QuadPart);  // nanoseconds per tick
+				LARGE_INTEGER frequency;
+				QueryPerformanceFrequency(&frequency);
+				return double(1000000000.0L / frequency.QuadPart);  // nanoseconds per tick
 			};
-			
-			auto queryCounter = [&_counter]
+
+			auto queryCounter = []
 			{
-				// LARGE_INTEGER counter;
-				// QueryPerformanceCounter(&counter);
-				return _counter.QuadPart;
+				LARGE_INTEGER counter;
+				QueryPerformanceCounter(&counter);
+				return counter.QuadPart;
 			};
 
 			EA_DISABLE_VC_WARNING(4640)  // warning C4640: construction of local static object is not thread-safe (VS2013)
 			static auto frequency = queryFrequency(); // cache cpu frequency on first call
 			EA_RESTORE_VC_WARNING()
-
 			return uint64_t(frequency * queryCounter());
         #elif defined EA_PLATFORM_PS4
 			return sceKernelGetProcessTimeCounter();
@@ -600,7 +594,8 @@ namespace chrono
 				timespec ts;
 				int result = clock_gettime(CLOCK_MONOTONIC, &ts);
 
-				if (result == EINVAL)
+				if(result == EINVAL 
+					)
 					result = clock_gettime(CLOCK_REALTIME, &ts);
 
 				const uint64_t nNanoseconds = (uint64_t)ts.tv_nsec + ((uint64_t)ts.tv_sec * UINT64_C(1000000000));
