@@ -98,7 +98,6 @@ void lua_test()
 
 	// SEPARATOR = '/' !!!
 	// BASE PATH = %SystemRoot% !!!
-	KdBreakPoint();
 	if (ls->LoadFile("../dxx.lua") == LUA_OK) // equal = C:\\dxx.lua
 	{
 		ls->PCall(0, 0, 0);
