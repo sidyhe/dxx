@@ -9,10 +9,21 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
+    <Filter Include="path">
+      <UniqueIdentifier>{10f7425e-f8e9-4f34-b5e2-4bd4d668cafa}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="path.cpp">
+      <Filter>path</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="path.hpp">
+      <Filter>path</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
