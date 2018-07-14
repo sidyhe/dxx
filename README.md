@@ -2,11 +2,11 @@
 
 Windows Kernel Driver with C++ runtime
 
-stl support (EASTL)
+EASTL 3.10.00
 
-lua support (embedded utf-8 parser, no os lib, part io lib)
+lua 5.3.5 (utf-8 embedded, base io lib, no os lib)
 
-msgpack support
+msgpack 2.1.5
 
 ## Build
 
