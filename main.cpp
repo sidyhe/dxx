@@ -39,15 +39,8 @@ struct TestPack
 	MSGPACK_DEFINE(a, b, c, d, e, f, g);
 };
 
-NTSTATUS SysMain(PDRIVER_OBJECT DrvObject, PUNICODE_STRING RegPath) {
-	UNREFERENCED_PARAMETER(DrvObject);
-	UNREFERENCED_PARAMETER(RegPath);
-
-	test_global_class.foo();
-
-	auto p1 = new CLIENT_ID[10];
-	delete p1;
-
+void stl_test()
+{
 	eastl::make_unique<DRIVER_OBJECT>();
 	eastl::make_shared<UNICODE_STRING>();
 	eastl::scoped_ptr<double> dptr(new double(3.6));
@@ -87,7 +80,10 @@ NTSTATUS SysMain(PDRIVER_OBJECT DrvObject, PUNICODE_STRING RegPath) {
 
 	eastl::unordered_map<double, eastl::string> um_test;
 	um_test.insert(eastl::make_pair(6.6, "9.9"));
+}
 
+void lua_test()
+{
 	LuaPlus::LuaStateAuto ls(LuaPlus::LuaState::Create(true));
 	{
 		LuaPlus::LuaModule _G(ls->GetGlobals());
@@ -100,6 +96,17 @@ NTSTATUS SysMain(PDRIVER_OBJECT DrvObject, PUNICODE_STRING RegPath) {
 		ls->PCall(0, 0, 0);
 	}
 
+	// SEPARATOR = '/' !!!
+	// BASE PATH = %SystemRoot% !!!
+	KdBreakPoint();
+	if (ls->LoadFile("../dxx.lua") == LUA_OK) // equal = C:\\dxx.lua
+	{
+		ls->PCall(0, 0, 0);
+	}
+}
+
+void pack_test()
+{
 	TestPack tp;
 	tp.a = 1;
 	tp.b = '0';
@@ -112,7 +119,20 @@ NTSTATUS SysMain(PDRIVER_OBJECT DrvObject, PUNICODE_STRING RegPath) {
 	msgpack::sbuffer sb;
 	msgpack::pack(sb, tp);
 	TestPack tp2 = msgpack::unpack(sb.data(), sb.size()).get().as<TestPack>();
+}
+
+NTSTATUS SysMain(PDRIVER_OBJECT DrvObject, PUNICODE_STRING RegPath) {
+	UNREFERENCED_PARAMETER(DrvObject);
+	UNREFERENCED_PARAMETER(RegPath);
+
+	test_global_class.foo();
+
+	auto p1 = new CLIENT_ID[10];
+	delete p1;
+
+	stl_test();
+	lua_test();
+	pack_test();
 
 	return STATUS_UNSUCCESSFUL;
 }
-
