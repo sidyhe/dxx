@@ -251,7 +251,7 @@
       <Filter>lua\c\unfix</Filter>
     </ClCompile>
     <ClCompile Include="lua\core\liolib.c">
-      <Filter>lua\c\unfix</Filter>
+      <Filter>lua\c</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
