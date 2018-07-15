@@ -11,6 +11,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "kcrt", "kcrt\kcrt.vcxproj",
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "kstl", "kstl\kstl.vcxproj", "{C30969FA-8BF5-4125-B20B-8CEEBC78A99E}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "kxml", "kxml\kxml.vcxproj", "{86E96632-476F-4881-972F-7DAB4F984683}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -67,6 +69,18 @@ Global
 		{C30969FA-8BF5-4125-B20B-8CEEBC78A99E}.Release|x86.ActiveCfg = Release|Win32
 		{C30969FA-8BF5-4125-B20B-8CEEBC78A99E}.Release|x86.Build.0 = Release|Win32
 		{C30969FA-8BF5-4125-B20B-8CEEBC78A99E}.Release|x86.Deploy.0 = Release|Win32
+		{86E96632-476F-4881-972F-7DAB4F984683}.Debug|x64.ActiveCfg = Debug|x64
+		{86E96632-476F-4881-972F-7DAB4F984683}.Debug|x64.Build.0 = Debug|x64
+		{86E96632-476F-4881-972F-7DAB4F984683}.Debug|x64.Deploy.0 = Debug|x64
+		{86E96632-476F-4881-972F-7DAB4F984683}.Debug|x86.ActiveCfg = Debug|Win32
+		{86E96632-476F-4881-972F-7DAB4F984683}.Debug|x86.Build.0 = Debug|Win32
+		{86E96632-476F-4881-972F-7DAB4F984683}.Debug|x86.Deploy.0 = Debug|Win32
+		{86E96632-476F-4881-972F-7DAB4F984683}.Release|x64.ActiveCfg = Release|x64
+		{86E96632-476F-4881-972F-7DAB4F984683}.Release|x64.Build.0 = Release|x64
+		{86E96632-476F-4881-972F-7DAB4F984683}.Release|x64.Deploy.0 = Release|x64
+		{86E96632-476F-4881-972F-7DAB4F984683}.Release|x86.ActiveCfg = Release|Win32
+		{86E96632-476F-4881-972F-7DAB4F984683}.Release|x86.Build.0 = Release|Win32
+		{86E96632-476F-4881-972F-7DAB4F984683}.Release|x86.Deploy.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
