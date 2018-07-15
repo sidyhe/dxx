@@ -4,6 +4,8 @@ Windows Kernel Driver with C++ runtime
 
 EASTL 3.10.00
 
+apathy
+
 lua 5.3.5 (utf-8 embedded, base io lib, no os lib)
 
 msgpack 2.1.5
@@ -136,7 +138,7 @@ NTSTATUS SysMain(PDRIVER_OBJECT DrvObject, PUNICODE_STRING RegPath) {
 	test_global_class.foo();
 
 	auto p1 = new CLIENT_ID[10];
-	delete p1;
+	delete[] p1;
 
 	stl_test();
 	lua_test();

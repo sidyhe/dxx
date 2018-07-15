@@ -127,7 +127,7 @@ NTSTATUS SysMain(PDRIVER_OBJECT DrvObject, PUNICODE_STRING RegPath) {
 	test_global_class.foo();
 
 	auto p1 = new CLIENT_ID[10];
-	delete p1;
+	delete[] p1;
 
 	stl_test();
 	lua_test();
