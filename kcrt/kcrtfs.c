@@ -229,6 +229,19 @@ int __cdecl fgetc(FILE* f)
 	}
 }
 
+int __cdecl ungetc(int c, FILE* f)
+{
+	if (c != EOF)
+	{
+		if (!fseek(f, -1, SEEK_CUR))
+		{
+			return c;
+		}
+	}
+
+	return EOF;
+}
+
 size_t __cdecl fread(void* Buffer, size_t ElementSize, size_t ElementCount, FILE* f)
 {
 	IO_STATUS_BLOCK isb;
@@ -263,14 +276,24 @@ void __cdecl clearerr(FILE* f)
 
 long __cdecl ftell(FILE* f)
 {
+	return (long)_ftelli64(f);
+}
+
+int __cdecl fseek(FILE* _Stream, long  _Offset, int _Origin)
+{
+	return _fseeki64(_Stream, _Offset, _Origin);
+}
+
+__int64 __cdecl _ftelli64(FILE* _Stream)
+{
 	IO_STATUS_BLOCK isb;
 	FILE_POSITION_INFORMATION fpi;
-	FILE_CONTROL_BLOCK* fcb = fget_core(f);
+	FILE_CONTROL_BLOCK* fcb = fget_core(_Stream);
 
 	fcb->err = ZwQueryInformationFile(fcb->hFile, &isb, &fpi, sizeof(fpi), FilePositionInformation);
 	if (NT_SUCCESS(fcb->err))
 	{
-		return (long)fpi.CurrentByteOffset.QuadPart;
+		return fpi.CurrentByteOffset.QuadPart;
 	}
 	else
 	{
@@ -278,7 +301,7 @@ long __cdecl ftell(FILE* f)
 	}
 }
 
-int __cdecl fseek(FILE* _Stream, long  _Offset, int _Origin)
+int __cdecl _fseeki64(FILE* _Stream, __int64 _Offset, int _Origin)
 {
 	IO_STATUS_BLOCK isb;
 	FILE_POSITION_INFORMATION fpi;
@@ -334,17 +357,3 @@ int __cdecl fseek(FILE* _Stream, long  _Offset, int _Origin)
 
 	return EIO;
 }
-
-int __cdecl ungetc(int c, FILE* f)
-{
-	if (c != EOF)
-	{
-		if (!fseek(f, -1, SEEK_CUR))
-		{
-			return c;
-		}
-	}
-
-	return EOF;
-}
-
