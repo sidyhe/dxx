@@ -286,7 +286,6 @@ public:
 
 	template <typename Callee, typename Func>
 	inline LuaObject& RegisterObjectDirect(const char* funcName, const Callee* callee, Func func, unsigned int nupvalues = 0) {
-		callee;
 		return RegisterHelper(funcName, LPCD::DirectCallObjectMemberDispatcherHelper<Callee, Func, 2>::DirectCallMemberDispatcher, nupvalues, NULL, 0, &func, sizeof(func));
 	}
 

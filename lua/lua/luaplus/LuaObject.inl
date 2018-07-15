@@ -811,17 +811,20 @@ inline LuaObject& LuaObject::SetNumber(LuaObject& key, lua_Number value) {
 }
 
 
-inline LuaObject& LuaObject::SetString(const char* key, const char* value, int /*len*/) {
+inline LuaObject& LuaObject::SetString(const char* key, const char* value, int len) {
+	len;
 	return Set(key, value);
 }
 
 
-inline LuaObject& LuaObject::SetString(int key, const char* value, int /*len*/) {
+inline LuaObject& LuaObject::SetString(int key, const char* value, int len) {
+	len;
 	return Set(key, value);
 }
 
 
-inline LuaObject& LuaObject::SetString(LuaObject& key, const char* value, int /*len*/) {
+inline LuaObject& LuaObject::SetString(LuaObject& key, const char* value, int len) {
+	len;
 	return Set(key, value);
 }
 

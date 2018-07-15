@@ -185,8 +185,9 @@ LUAPLUS_INLINE void LuaStackObject::Push()							{  lua_pushvalue( GetCState(), 
 // This is a dangerous function, as it can affect the stack placement of other LuaObjects.
 LUAPLUS_INLINE void LuaStackObject::Pop()							{  lua_remove( GetCState(), m_stackIndex );  }
 
-LUAPLUS_INLINE int LuaStackObject::Ref( int /*lock*/ )
+LUAPLUS_INLINE int LuaStackObject::Ref( int lock )
 {
+	lock;
 	Push();
 	return luaL_ref( LuaState_to_lua_State( L ), m_stackIndex );
 }

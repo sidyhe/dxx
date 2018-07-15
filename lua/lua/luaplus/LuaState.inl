@@ -741,8 +741,9 @@ LUAPLUS_INLINE void LuaState::SetUservalue(int index)
 #endif
 }
 
-LUAPLUS_INLINE void LuaState::SetFEnv(int /*index*/)
+LUAPLUS_INLINE void LuaState::SetFEnv(int index)
 {
+	index;
 #if LUA_VERSION_NUM <= 501
 	lua_setfenv(LuaState_to_lua_State(this), index);
 #else
@@ -1167,7 +1168,8 @@ LUAPLUS_INLINE void LuaState::GetFastRef(int ref) {
 
 
 // lauxlib functions.
-LUAPLUS_INLINE void LuaState::OpenLib(const char *, const luaL_Reg *, int) {
+LUAPLUS_INLINE void LuaState::OpenLib(const char *libname, const luaL_Reg *l, int nup) {
+	libname; l; nup;
 #if LUA_VERSION_NUM == 501
 	luaI_openlib(LuaState_to_lua_State(this), libname, l, nup);
 #elif LUA_VERSION_NUM >= 502

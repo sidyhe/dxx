@@ -186,15 +186,15 @@ namespace LPCD {
 
 	// nil type
 	template<> struct Type<const LuaNil&> {
-		static inline void Push(lua_State* L, const LuaNil& /*value*/)						{  lua_pushnil(L);  }
-		static inline bool Match(lua_State* /*L*/, int /*idx*/)									{  return true;  }
+		static inline void Push(lua_State* L, const LuaNil& value)						{  value; lua_pushnil(L);  }
+		static inline bool Match(lua_State* L, int idx)									{  L; idx; return true;  }
 		static inline LuaNil Get(lua_State* L, int idx)									{  (void)L, (void)idx;  return LuaNil();  }
 	};
 
 	// c function type
 	template<> struct Type<lua_CFunction> {
 		static inline void Push(lua_State* L, const lua_CFunction value)				{  lua_pushcclosure(L, value, 0);  }
-		static inline bool Match(lua_State* /*L*/, int /*idx*/)									{  return true;  }
+		static inline bool Match(lua_State* L, int idx)									{  L; idx; return true;  }
 		static inline lua_CFunction Get(lua_State* L, int idx)							{  return static_cast<lua_CFunction>(lua_tocfunction(L, idx));  }
 	};
 
@@ -2269,7 +2269,7 @@ inline void lpcd_propertycreate(lua_State* L, int metatableIndex, const char* va
 
 
 inline void* lpcd_checkobject(lua_State* L, int index, const char* tname, bool throwError = true) {
-	luaplus_assert(tname);
+	assert(tname);
 
 	int type = lua_type(L, index);
 	if (type == LUA_TTABLE) {

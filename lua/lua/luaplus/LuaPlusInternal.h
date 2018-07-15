@@ -81,11 +81,10 @@ struct LuaArgNil {};
 } // namespace LuaPlus
 
 #if !LUAPLUS_EXCEPTIONS
-// #include <assert.h>
-#define LUAP_ERRNO			0xD2171218
-#define luaplus_assert(e)	if (!(e)) ASSERT(0)
+#include <assert.h>
+#define luaplus_assert(e) if (!(e)) assert(0)
 //(void)0
-#define luaplus_throw(e)	ExRaiseStatus(LUAP_ERRNO)
+#define luaplus_throw(e) assert(0)
 //(void)0
 #else
 #define luaplus_assert(e) if (!(e)) throw LuaPlus::LuaException(#e)

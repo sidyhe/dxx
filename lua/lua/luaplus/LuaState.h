@@ -463,7 +463,7 @@ namespace LPCD {
 	template<> struct Type<LuaPlus::LuaState*> {
 		static inline void Push(lua_State* L, LuaPlus::LuaState* value)						{  lua_pushlightuserdata(L, value);  }
 		static inline bool Match(lua_State* L, int idx)										{  (void)L, (void)idx;  return true;  }
-		static inline LuaPlus::LuaState* Get(lua_State* L, int /*idx*/)							{  return lua_State_to_LuaState(L);  }
+		static inline LuaPlus::LuaState* Get(lua_State* L, int idx)							{  idx; return lua_State_to_LuaState(L);  }
 	};
 } // namespace LPCD
 
