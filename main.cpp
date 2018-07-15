@@ -1,10 +1,12 @@
 #include <wdm.h>
+#include <ntstrsafe.h>
 #include <luaplus.hpp>
 #include <msgpack.hpp>
 #include <EASTL/sort.h>
 #include <EASTL/unique_ptr.h>
 #include <EASTL/shared_ptr.h>
 #include <EASTL/scoped_ptr.h>
+#include <pugixml.hpp>
 
 class ThisIsAClass {
 public:
@@ -96,8 +98,34 @@ void lua_test()
 		ls->PCall(0, 0, 0);
 	}
 
-	// SEPARATOR = '/' !!!
-	// BASE PATH = %SystemRoot% !!!
+/*
+local function main()
+    local f, err = io.open("../dxx.log", "w");
+    
+    if f then
+      
+      for i = 1, 10, 1 do
+        f:write(i .. "\r\n");
+      end;
+      
+      f:close();
+    end;
+    
+    f, err = io.open("../dxx.log", "r");
+    
+    if f then
+      
+      for l in f:lines() do
+        print(l);
+      end;
+      
+      f:close();
+    end;
+    
+end;
+
+main();
+*/
 	if (ls->LoadFile("../dxx.lua") == LUA_OK) // equal = C:\\dxx.lua
 	{
 		ls->PCall(0, 0, 0);
@@ -120,9 +148,43 @@ void pack_test()
 	TestPack tp2 = msgpack::unpack(sb.data(), sb.size()).get().as<TestPack>();
 }
 
+void xml_test()
+{
+	pugi::xml_document doc;
+
+/*
+<?xml version='1.0' encoding='utf-8'?>
+
+<root>
+  <dxx a="1" b="2" c="3.3" d="5.6" e="Hello kitty!">
+    <text><![CDATA[This is a CDATA String !!!]]></text>
+  </dxx>
+</root>
+*/
+	if (doc.load_file("././//System32/../../dxx.xml")) // equal = C:\\dxx.xml
+	{
+		pugi::xml_node root = doc.first_child();
+		pugi::xml_node node = root.child("dxx");
+
+		int a = node.attribute("a").as_int(0);
+		__int64 b = node.attribute("b").as_llong(0);
+		float c = node.attribute("c").as_float(0.0f);
+		double d = node.attribute("d").as_double(0.0);
+		eastl::string e = node.attribute("e").as_string("");
+		eastl::string cdata = node.child("text").text().as_string("");
+
+		// Driver cannot print float & double, view in WinDBG
+		DbgPrintEx(DPFLTR_SYSTEM_ID, DPFLTR_ERROR_LEVEL, "%d %d %s %s\n", a, b, (c, d, e.c_str()), cdata.c_str());
+	}
+}
+
 NTSTATUS SysMain(PDRIVER_OBJECT DrvObject, PUNICODE_STRING RegPath) {
 	UNREFERENCED_PARAMETER(DrvObject);
 	UNREFERENCED_PARAMETER(RegPath);
+
+	// NOTE OF PATH:
+	// SEPARATOR = '/' !!!
+	// BASE PATH = %SystemRoot% !!!
 
 	test_global_class.foo();
 
@@ -132,6 +194,7 @@ NTSTATUS SysMain(PDRIVER_OBJECT DrvObject, PUNICODE_STRING RegPath) {
 	stl_test();
 	lua_test();
 	pack_test();
+	xml_test();
 
 	return STATUS_UNSUCCESSFUL;
 }
