@@ -206,6 +206,7 @@ namespace detail
 		}
 		static void destroy_functor(Allocator &, total_storage_type & storage) EA_NOEXCEPT
 		{
+			storage;
 			get_functor_ref(storage).~T();
 		}
 		static T & get_functor_ref(const total_storage_type & storage) EA_NOEXCEPT

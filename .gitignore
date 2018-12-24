@@ -3,6 +3,8 @@ x64/
 Debug/
 Release/
 
+inter/
+
 *.vc.db
 *.vc.opendb
 *.vcxproj.user
