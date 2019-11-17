@@ -13,7 +13,7 @@ Windows Kernel Driver with C++ runtime
 
 ## Build
 
-VS2015 + SDK10.14393 + WDK10.14393
+VS2017 + SDK10.17763 + WDK10.17763
 
 ## Example
 
