@@ -16,6 +16,12 @@
     <Filter Include="lua\c\unfix">
       <UniqueIdentifier>{68f6aeb4-235c-46d1-9a7b-fdf008c60c66}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ffi">
+      <UniqueIdentifier>{5f1936fe-b40a-4b26-bf8c-0c24d17fe63f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ffi\dasm">
+      <UniqueIdentifier>{2d84f40a-6b75-4b9d-a587-8b9e115519f6}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="lua\luaplus.hpp" />
@@ -152,6 +158,21 @@
     <ClInclude Include="lua\luaplus\LuaTableIterator.h">
       <Filter>luaplus</Filter>
     </ClInclude>
+    <ClInclude Include="lua\luaffi\ffi.h">
+      <Filter>ffi</Filter>
+    </ClInclude>
+    <ClInclude Include="lua\luaffi\call_x64win.h">
+      <Filter>ffi</Filter>
+    </ClInclude>
+    <ClInclude Include="lua\luaffi\dynasm\dasm_x86.h">
+      <Filter>ffi\dasm</Filter>
+    </ClInclude>
+    <ClInclude Include="lua\luaffi\dynasm\dasm_proto.h">
+      <Filter>ffi\dasm</Filter>
+    </ClInclude>
+    <ClInclude Include="lua\luaffi\call_x86.h">
+      <Filter>ffi</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="lua\core\lapi.c">
@@ -252,6 +273,18 @@
     </ClCompile>
     <ClCompile Include="lua\core\liolib.c">
       <Filter>lua\c</Filter>
+    </ClCompile>
+    <ClCompile Include="lua\luaffi\ffi.c">
+      <Filter>ffi</Filter>
+    </ClCompile>
+    <ClCompile Include="lua\luaffi\call.c">
+      <Filter>ffi</Filter>
+    </ClCompile>
+    <ClCompile Include="lua\luaffi\ctype.c">
+      <Filter>ffi</Filter>
+    </ClCompile>
+    <ClCompile Include="lua\luaffi\parser.c">
+      <Filter>ffi</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

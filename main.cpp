@@ -7,6 +7,7 @@
 #include <EASTL/shared_ptr.h>
 #include <EASTL/scoped_ptr.h>
 #include <pugixml.hpp>
+#include <luaffi/ffi.h>
 
 class ThisIsAClass {
 public:
@@ -87,6 +88,7 @@ void stl_test()
 void lua_test()
 {
 	LuaPlus::LuaStateAuto ls(LuaPlus::LuaState::Create(true));
+	luaopen_ffi(ls->GetCState());
 	{
 		LuaPlus::LuaModule _G(ls->GetGlobals());
 

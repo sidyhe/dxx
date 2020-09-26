@@ -45,6 +45,11 @@
     <ClInclude Include="lua\core\lundump.h" />
     <ClInclude Include="lua\core\lvm.h" />
     <ClInclude Include="lua\core\lzio.h" />
+    <ClInclude Include="lua\luaffi\call_x64win.h" />
+    <ClInclude Include="lua\luaffi\call_x86.h" />
+    <ClInclude Include="lua\luaffi\dynasm\dasm_proto.h" />
+    <ClInclude Include="lua\luaffi\dynasm\dasm_x86.h" />
+    <ClInclude Include="lua\luaffi\ffi.h" />
     <ClInclude Include="lua\luaplus.hpp" />
     <ClInclude Include="lua\luaplusclass.h" />
     <ClInclude Include="lua\luaplus\LuaAutoBlock.h" />
@@ -105,6 +110,10 @@
     <ClCompile Include="lua\core\lutf8lib.c" />
     <ClCompile Include="lua\core\lvm.c" />
     <ClCompile Include="lua\core\lzio.c" />
+    <ClCompile Include="lua\luaffi\call.c" />
+    <ClCompile Include="lua\luaffi\ctype.c" />
+    <ClCompile Include="lua\luaffi\ffi.c" />
+    <ClCompile Include="lua\luaffi\parser.c" />
   </ItemGroup>
   <ItemGroup>
     <None Include="lua\luaplus\LuaCall.inl" />
@@ -180,28 +189,28 @@
     <ClCompile>
       <PreprocessorDefinitions>WINDDK;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <TreatWarningAsError>false</TreatWarningAsError>
-      <AdditionalIncludeDirectories>$(VC_IncludePath);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(VC_IncludePath);./lua/core;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <PreprocessorDefinitions>WINDDK;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <TreatWarningAsError>false</TreatWarningAsError>
-      <AdditionalIncludeDirectories>$(VC_IncludePath);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(VC_IncludePath);./lua/core;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
       <PreprocessorDefinitions>WINDDK;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <TreatWarningAsError>false</TreatWarningAsError>
-      <AdditionalIncludeDirectories>$(VC_IncludePath);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(VC_IncludePath);./lua/core;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <PreprocessorDefinitions>WINDDK;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <TreatWarningAsError>false</TreatWarningAsError>
-      <AdditionalIncludeDirectories>$(VC_IncludePath);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(VC_IncludePath);./lua/core;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
