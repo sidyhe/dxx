@@ -6,9 +6,10 @@ Windows Kernel Driver with C++ runtime
 |-|-|-|-|
 |EASTL|v3.10.00|https://github.com/electronicarts/EASTL|
 |msgpack|v2.1.5|https://github.com/msgpack/msgpack-c|use eastl, ``throw`` instead of ``ExRaiseStatus``
-|apathy||https://github.com/dlecocq/apathy|remove code based os
+|apathy|-|https://github.com/dlecocq/apathy|remove code based os
 |lua|v5.3.5|https://www.lua.org/|utf-8 embedded, part of io lib, no os lib|
-|luaplus||https://github.com/jjensen/luaplus51-all|
+|luaffi|-|https://github.com/jmckaskill/luaffi|fit for wdk|
+|luaplus|-|https://github.com/jjensen/luaplus51-all|
 |pugixml|v1.8.1|https://github.com/zeux/pugixml|
 
 ## Build
